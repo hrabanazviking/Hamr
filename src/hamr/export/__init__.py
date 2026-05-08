@@ -25,6 +25,13 @@ from hamr.export.first_person import (
     configure_first_person_pure,
     configure_first_person,
 )
+from hamr.export.vrm_validator import (
+    VRMValidationResult,
+    VRMValidator,
+    parse_vrm_bytes,
+    extract_json_chunk,
+    is_valid_vrm_binary,
+)
 
 __all__ = [
     # VRM export
@@ -47,4 +54,10 @@ __all__ = [
     "classify_mesh_for_fp",
     "configure_first_person_pure",
     "configure_first_person",
+    # VRM validator
+    "VRMValidationResult",
+    "VRMValidator",
+    "parse_vrm_bytes",
+    "extract_json_chunk",
+    "is_valid_vrm_binary",
 ]
