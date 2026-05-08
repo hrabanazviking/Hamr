@@ -46,6 +46,19 @@ from hamr.core.gpu_profiles import (
     validate_profile_compatibility,
     profile_to_budget,
 )
+from hamr.core.benchmark import (
+    BenchmarkResult,
+    BenchmarkSuite,
+    BENCHMARK_THRESHOLD,
+    run_benchmark,
+    run_benchmark_suite,
+    check_regression,
+    get_memory_usage,
+    format_benchmark_report,
+    save_benchmark_results,
+    load_benchmark_results,
+    compare_suites,
+)
 
 __all__ = [
     "Spec",
@@ -88,4 +101,15 @@ __all__ = [
     "profile_from_spec",
     "validate_profile_compatibility",
     "profile_to_budget",
+    "BenchmarkResult",
+    "BenchmarkSuite",
+    "BENCHMARK_THRESHOLD",
+    "run_benchmark",
+    "run_benchmark_suite",
+    "check_regression",
+    "get_memory_usage",
+    "format_benchmark_report",
+    "save_benchmark_results",
+    "load_benchmark_results",
+    "compare_suites",
 ]
