@@ -23,6 +23,14 @@ from hamr.core.perf import (
     check_budget,
     optimize_spec_for_budget,
 )
+from hamr.core.perf_gate import (
+    PerfGateResult,
+    PerfGate,
+    ESTIMATE_FACTORS,
+    select_budget_tier,
+    estimate_from_preset,
+    format_gate_report,
+)
 
 __all__ = [
     "Spec",
@@ -48,4 +56,10 @@ __all__ = [
     "estimate_build_time",
     "check_budget",
     "optimize_spec_for_budget",
+    "PerfGateResult",
+    "PerfGate",
+    "ESTIMATE_FACTORS",
+    "select_budget_tier",
+    "estimate_from_preset",
+    "format_gate_report",
 ]
