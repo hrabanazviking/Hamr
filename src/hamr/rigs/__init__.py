@@ -21,6 +21,17 @@ from hamr.rigs.weights import (
     compute_quality_score,
     smooth_weight_map,
 )
+from hamr.rigs.verify import (
+    MB_LAB_NAMES_TO_VRM,
+    VRM_BONE_HIERARCHY,
+    RigReport,
+    RigVerifier,
+    check_hierarchy_graph,
+    check_naming_conventions_pure,
+    cmd_verify_rig,
+    generate_rig_report,
+    verify_bone_list,
+)
 from hamr.export.vrm import MB_LAB_BONE_MAP, VRM_REQUIRED_BONES
 from hamr.core.constants import VRM_25_BONE_NAMES
 
@@ -42,4 +53,14 @@ __all__ = [
     "compute_quality_score",
     "classify_deformation_quality",
     "smooth_weight_map",
+    # Rig verification
+    "MB_LAB_NAMES_TO_VRM",
+    "VRM_BONE_HIERARCHY",
+    "RigReport",
+    "RigVerifier",
+    "verify_bone_list",
+    "check_hierarchy_graph",
+    "check_naming_conventions_pure",
+    "generate_rig_report",
+    "cmd_verify_rig",
 ]
