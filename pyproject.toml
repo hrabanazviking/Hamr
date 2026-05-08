@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hamr"
-version = "0.6.0"
+version = "0.7.0rc1"
 description = "Hamr — The Shape-Skin Engine. Open-source parametric 3D anime character forge."
 readme = "README.md"
 license = {text = "MIT"}

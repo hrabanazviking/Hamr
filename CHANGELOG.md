@@ -5,6 +5,21 @@ All notable changes to Hamr will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0rc1] - 2026-05-08
+
+### Added — Phase 14: Gjallarhorn (The Resounding Horn — Release Candidate)
+
+#### T6: Release Candidate 0.7.0-rc1 Preparation
+- **`RELEASE_NOTES.md`** — Comprehensive release notes (v0.7.0-rc1, changes from Phase 7–14)
+- **`MIGRATION.md`** — Full v0.3.0 → v0.7.0 migration guide
+- **`CONTRIBUTING.md`** — Development setup, code style, commit format, branch workflow, PR checklist
+- Version bumped to `0.7.0rc1` in `pyproject.toml` and `src/hamr/__init__.py`
+- Changelog updated with Phase 14 release candidate section
+
+### Changed
+- `src/hamr/__init__.py` — Version bumped to 0.7.0rc1
+- `pyproject.toml` — Version bumped to 0.7.0rc1
+
 ## [0.6.0] - 2026-05-08
 
 ### Added — Phase 13: Vǫllr Vígríðar (The Plain of Battle — Hardening)

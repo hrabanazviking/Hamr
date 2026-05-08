@@ -1,77 +1,156 @@
 # Contributing to Hamr
 
-Thank you for your interest in contributing to the Shape-Skin Engine!
+Thank you for your interest in contributing to **Hamr — The Shape-Skin Engine**.
+This document covers everything you need to get started.
+
+---
 
 ## Development Setup
 
+### Prerequisites
+
+- Python ≥ 3.10
+- Git
+- Blender 4.2+ (for full pipeline testing; not required for core library work)
+
+### Clone & Install
+
 ```bash
-git clone https://github.com/hrabanazviking/Hamr.git
+git clone https://github.com/VolmarrShield/Hamr.git
 cd Hamr
+git checkout Development
 pip install -e ".[dev]"
 ```
 
-## Code Style
-
-- **Python 3.11+** — use `from __future__ import annotations`
-- **Line length**: 100 characters max
-- **Linting**: `ruff check src/hamr/`
-- **Type checking**: `mypy src/hamr/`
-- **Naming**: Norse-mythology inspired variable names are welcome for high-level concepts, but use clear descriptive English names for implementation details
-
-## Running Tests
+### Run Tests
 
 ```bash
-# All tests
-pytest tests/ -v
+# Full suite
+python3 -m pytest tests/ -q --tb=short
 
-# Phase-specific
-pytest tests/test_phase1.py -v   # Spec, Models, Validation
-pytest tests/test_phase2.py -v   # Textures, Bridge, Export, Body
-pytest tests/test_phase3.py -v   # Bone Maps, Expressions, Build Script
-pytest tests/test_phase4.py -v   # Pipeline, CLI
-pytest tests/test_phase5.py -v   # Blender E2E, Environment
+# Without Blender-dependent tests
+python3 -m pytest tests/ -q -m "not blender and not e2e"
+
+# Performance regression only
+python3 -m pytest tests/ -m perf
 
 # With coverage
-pytest tests/ --cov=hamr --cov-report=term-missing
+python3 -m pytest tests/ --cov=hamr --cov-report=term-missing
 ```
 
-## Branch Strategy
+---
 
-- **Development** — Active development, all PRs merge here first
-- **main** — Stable releases only, merged from Development after full test pass
+## Code Style
 
-## Commit Messages
+We use **ruff** for linting and formatting.
 
-Use conventional commit format with emoji:
+- **Line length:** 100 characters
+- **Target:** Python 3.10+
+- **Rules:** E, F, W, I, N, UP, B, A, SIM
 
+```bash
+# Check for issues
+ruff check src/ tests/
+
+# Auto-fix
+ruff check --fix src/ tests/
+
+# Format
+ruff format src/ tests/
 ```
-🔥 Phase N — Description
-⚔️ Fix: description
-✨ Feature: description
-📝 Docs: description
-🧪 Test: description
+
+### Type Checking
+
+```bash
+mypy src/
 ```
 
-## Design Principles
+All public functions should have type annotations. `disallow_untyped_defs` is
+enabled in `mypy` configuration.
 
-1. **YAML-First** — Every parameter controllable via spec files
-2. **Headless-First** — No GUI dependency, Blender runs `--background`
-3. **Agent-Orchestrated** — Designed for AI-driven creation pipelines
-4. **Explicit Over Implicit** — Never auto-map bones (lesson D-008)
-5. **Additive-Only Bug Fixes** — Fix by adding correct paths, not removing old ones
-6. **Pathlib Over Strings** — Use `Path` objects, not raw string paths
+---
 
-## Adding a New Forge
+## Commit Message Format
 
-1. Create `src/hamr/<forge>/__init__.py` with your public API
-2. Add models to `src/hamr/core/models.py` if needed
-3. Add constants to `src/hamr/core/constants.py` if needed
-4. Wire into `src/hamr/core/builder.py` and `src/hamr/core/pipeline.py`
-5. Add tests in `tests/test_phase<N+1>.py`
-6. Update this README's architecture table
+We use **emoji prefixes** to make the commit log scannable:
 
-## Questions?
+| Emoji | Prefix | Meaning |
+|---|---|---|
+| ⚡ | `⚡ feat:` | New feature |
+| 🐛 | `🐛 fix:` | Bug fix |
+| 📝 | `📝 docs:` | Documentation |
+| 🎨 | `🎨 style:` | Code style / formatting (no logic change) |
+| ♻️ | `♻️ refactor:` | Refactoring (no feature or fix) |
+| ⚙️ | `⚙️ ci:` | CI / build configuration |
+| ✅ | `✅ test:` | Test additions or changes |
+| 🔒 | `🔒 chore:` | Security or housekeeping |
+| 🚀 | `🚀 release:` | Release preparation |
 
-Open an issue or find us in the VRM/open-source 3D community.
+**Examples:**
+```
+⚡ feat: add procedural iris texture generation
+🐛 fix: correct bone hierarchy for TurboSquid rigs
+📝 docs: update CLI reference for Phase 14
+✅ test: add regression guards for Phase 12 presets
+🚀 release: bump version to 0.7.0rc1
+```
 
-*May the Nornir guide your threads.*
+---
+
+## Branch Workflow
+
+| Branch | Purpose |
+|---|---|
+| `Main` | Stable releases only. Merged from `Development` at release. |
+| `Development` | Active development. All PRs target this branch. |
+| `feature/<name>` | Feature branches, branched from `Development`. |
+
+### Workflow
+
+1. Branch from `Development`:
+   ```bash
+   git checkout Development
+   git pull origin Development
+   git checkout -b feature/my-feature
+   ```
+
+2. Make changes, commit with emoji prefix.
+
+3. Push and open a PR against `Development`:
+   ```bash
+   git push origin feature/my-feature
+   ```
+
+4. After review and approval, merge into `Development`.
+
+5. At release time, `Development` is merged into `Main`.
+
+---
+
+## PR Checklist
+
+Before submitting a pull request, verify:
+
+- [ ] All tests pass: `pytest tests/ -q --tb=short`
+- [ ] Lint is clean: `ruff check src/ tests/`
+- [ ] Type check passes: `mypy src/`
+- [ ] New code has tests
+- [ ] Docstrings on all public functions / classes
+- [ ] No hardcoded secrets or credentials
+- [ ] Commit messages follow emoji prefix format
+- [ ] PR targets `Development` (not `Main`)
+
+---
+
+## Reporting Issues
+
+- Use [GitHub Issues](https://github.com/VolmarrShield/Hamr/issues)
+- Include: Hamr version (`hamr version`), Python version, OS, Blender version
+  (if applicable), minimal reproduction steps
+
+---
+
+## License
+
+By contributing, you agree that your work will be licensed under the MIT License,
+as described in the project's `LICENSE` file.

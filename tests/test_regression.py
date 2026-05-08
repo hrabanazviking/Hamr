@@ -279,7 +279,7 @@ class TestVersionConsistency:
 
     def test_pyproject_version_matches(self):
         from hamr import __version__
-        # Version must be valid semver (x.y.z)
-        parts = __version__.split(".")
-        assert len(parts) == 3, f"Version {__version__} is not valid semver"
-        assert all(p.isdigit() for p in parts), f"Version {__version__} is not valid semver"
+        # Version must be valid PEP 440 (x.y.z or x.y.zN — e.g. 0.7.0rc1)
+        import re
+        pep440_re = re.compile(r"^\d+\.\d+\.\d+([a-zA-Z]+\d+)?$")
+        assert pep440_re.match(__version__), f"Version {__version__} is not valid PEP 440"
