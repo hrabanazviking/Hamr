@@ -37,6 +37,7 @@ hair:
     highlight: "#F0E0B8"
 
 face:
+  jaw: V-shape
   eyes:
     iris_hex: "#4169E1"
     pupil_hex: "#1A1A2E"
@@ -78,6 +79,24 @@ face:
     width: 0.30
     protrusion: 0.40
     jaw_width: 0.40
+
+clothing:
+  - name: viking_tunic
+    type: top
+    primary_hex: "#4A6741"
+    material_category: fabric
+  - name: leather_belt
+    type: accessories
+    primary_hex: "#5C3A1E"
+    material_category: leather
+  - name: linen_trousers
+    type: bottom
+    primary_hex: "#8B7D6B"
+    material_category: fabric
+  - name: fur Boots
+    type: footwear
+    primary_hex: "#4A3728"
+    material_category: fur
 
 export:
   format: vrm1

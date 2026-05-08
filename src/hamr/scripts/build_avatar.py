@@ -48,84 +48,80 @@ logger.setLevel(logging.DEBUG)
 
 MB_LAB_BONE_MAP: dict[str, str] = {
     "hips": "pelvis",
-    "spine": "spine_01",
-    "chest": "spine_02",
-    "upperChest": "spine_03",
-    "neck": "neck_01",
+    "spine": "spine01",
+    "chest": "spine02",
+    "upperChest": "spine03",
+    "neck": "neck",
     "head": "head",
-    "leftUpperLeg": "thigh.L",
-    "leftLowerLeg": "shin.L",
-    "leftFoot": "foot.L",
-    "leftToes": "toe.L",
-    "rightUpperLeg": "thigh.R",
-    "rightLowerLeg": "shin.R",
-    "rightFoot": "foot.R",
-    "rightToes": "toe.R",
-    "leftShoulder": "clavicle.L",
-    "leftUpperArm": "upper_arm.L",
-    "leftLowerArm": "forearm.L",
-    "leftHand": "hand.L",
-    "rightShoulder": "clavicle.R",
-    "rightUpperArm": "upper_arm.R",
-    "rightLowerArm": "forearm.R",
-    "rightHand": "hand.R",
-    "leftEye": "eye.L",
-    "rightEye": "eye.R",
+    "leftUpperLeg": "thigh_L",
+    "leftLowerLeg": "calf_L",
+    "leftFoot": "foot_L",
+    "leftToes": "toes_L",
+    "rightUpperLeg": "thigh_R",
+    "rightLowerLeg": "calf_R",
+    "rightFoot": "foot_R",
+    "rightToes": "toes_R",
+    "leftShoulder": "clavicle_L",
+    "leftUpperArm": "upperarm_L",
+    "leftLowerArm": "lowerarm_L",
+    "leftHand": "hand_L",
+    "rightShoulder": "clavicle_R",
+    "rightUpperArm": "upperarm_R",
+    "rightLowerArm": "lowerarm_R",
+    "rightHand": "hand_R",
     "jaw": "jaw",
 }
 
-# MB-Lab expression presets → shape key bindings
+# MB-Lab expression presets → shape key bindings (using actual MB-Lab expression names)
+# After finalize_character, shape keys use the "Expressions_" prefix
 MB_LAB_EXPRESSION_MAP: dict[str, list[dict]] = {
     "happy": [
-        {"mesh": "Body", "shape_key": "mouth_smile", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "eye_blink_happy_L", "weight": 0.4},
-        {"mesh": "Body", "shape_key": "eye_blink_happy_R", "weight": 0.4},
+        {"shape_key": "Expressions_mouthSmile_max", "weight": 1.0},
+        {"shape_key": "Expressions_eyeClosedL_max", "weight": 0.3},
+        {"shape_key": "Expressions_eyeClosedR_max", "weight": 0.3},
     ],
     "angry": [
-        {"mesh": "Body", "shape_key": "brow_angry_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "brow_angry_R", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "mouth_frown_L", "weight": 0.5},
-        {"mesh": "Body", "shape_key": "mouth_frown_R", "weight": 0.5},
+        {"shape_key": "Expressions_browSqueezeL_max", "weight": 1.0},
+        {"shape_key": "Expressions_browSqueezeR_max", "weight": 1.0},
+        {"shape_key": "Expressions_mouthOpenAggr_max", "weight": 0.7},
     ],
     "sad": [
-        {"mesh": "Body", "shape_key": "mouth_frown_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "mouth_frown_R", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "brow_sad_L", "weight": 0.6},
-        {"mesh": "Body", "shape_key": "brow_sad_R", "weight": 0.6},
+        {"shape_key": "Expressions_mouthSmile_min", "weight": 0.8},
+        {"shape_key": "Expressions_eyeClosedL_max", "weight": 0.3},
+        {"shape_key": "Expressions_eyeClosedR_max", "weight": 0.3},
     ],
     "relaxed": [
-        {"mesh": "Body", "shape_key": "mouth_smile", "weight": 0.3},
+        {"shape_key": "Expressions_mouthSmile_max", "weight": 0.2},
     ],
     "surprised": [
-        {"mesh": "Body", "shape_key": "eye_wide_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "eye_wide_R", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "mouth_open", "weight": 0.5},
+        {"shape_key": "Expressions_eyesVert_max", "weight": 1.0},
+        {"shape_key": "Expressions_mouthOpen_max", "weight": 0.7},
     ],
     "blink": [
-        {"mesh": "Body", "shape_key": "eye_blink_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "eye_blink_R", "weight": 1.0},
+        {"shape_key": "Expressions_eyeClosedL_max", "weight": 1.0},
+        {"shape_key": "Expressions_eyeClosedR_max", "weight": 1.0},
     ],
     "blinkLeft": [
-        {"mesh": "Body", "shape_key": "eye_blink_L", "weight": 1.0},
+        {"shape_key": "Expressions_eyeClosedL_max", "weight": 1.0},
     ],
     "blinkRight": [
-        {"mesh": "Body", "shape_key": "eye_blink_R", "weight": 1.0},
+        {"shape_key": "Expressions_eyeClosedR_max", "weight": 1.0},
     ],
     "aa": [
-        {"mesh": "Body", "shape_key": "mouth_open", "weight": 1.0},
+        {"shape_key": "Expressions_mouthOpen_max", "weight": 1.0},
     ],
     "ih": [
-        {"mesh": "Body", "shape_key": "mouth_wide", "weight": 0.6},
+        {"shape_key": "Expressions_mouthHoriz_max", "weight": 0.6},
     ],
     "ou": [
-        {"mesh": "Body", "shape_key": "mouth_pucker", "weight": 1.0},
+        {"shape_key": "Expressions_mouthOpenO_max", "weight": 1.0},
     ],
     "ee": [
-        {"mesh": "Body", "shape_key": "mouth_smile", "weight": 0.5},
-        {"mesh": "Body", "shape_key": "mouth_wide", "weight": 0.5},
+        {"shape_key": "Expressions_mouthSmile_max", "weight": 0.5},
+        {"shape_key": "Expressions_mouthHoriz_max", "weight": 0.3},
     ],
     "oh": [
-        {"mesh": "Body", "shape_key": "mouth_open", "weight": 0.7},
+        {"shape_key": "Expressions_mouthOpenO_max", "weight": 0.7},
     ],
 }
 
@@ -165,58 +161,58 @@ NAIL_KEYWORDS = ("nail", "nails")
 LIP_KEYWORDS = ("lip", "lips", "mouth_inner")
 
 # TurboSquid expression map — standard humanoid rig shape keys
-# TurboSquid rigs typically use different naming conventions from MB-Lab
+# mesh name resolved dynamically at runtime via _find_body_mesh()
 TURBOSQUID_EXPRESSION_MAP: dict[str, list[dict]] = {
     "happy": [
-        {"mesh": "Body", "shape_key": "Smile", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "EyeSquint_L", "weight": 0.4},
-        {"mesh": "Body", "shape_key": "EyeSquint_R", "weight": 0.4},
+        {"shape_key": "Smile", "weight": 1.0},
+        {"shape_key": "EyeSquint_L", "weight": 0.4},
+        {"shape_key": "EyeSquint_R", "weight": 0.4},
     ],
     "angry": [
-        {"mesh": "Body", "shape_key": "BrowFurrow_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "BrowFurrow_R", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "Frown_L", "weight": 0.5},
-        {"mesh": "Body", "shape_key": "Frown_R", "weight": 0.5},
+        {"shape_key": "BrowFurrow_L", "weight": 1.0},
+        {"shape_key": "BrowFurrow_R", "weight": 1.0},
+        {"shape_key": "Frown_L", "weight": 0.5},
+        {"shape_key": "Frown_R", "weight": 0.5},
     ],
     "sad": [
-        {"mesh": "Body", "shape_key": "Frown_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "Frown_R", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "BrowSad_L", "weight": 0.6},
-        {"mesh": "Body", "shape_key": "BrowSad_R", "weight": 0.6},
+        {"shape_key": "Frown_L", "weight": 1.0},
+        {"shape_key": "Frown_R", "weight": 1.0},
+        {"shape_key": "BrowSad_L", "weight": 0.6},
+        {"shape_key": "BrowSad_R", "weight": 0.6},
     ],
     "relaxed": [
-        {"mesh": "Body", "shape_key": "Smile", "weight": 0.3},
+        {"shape_key": "Smile", "weight": 0.3},
     ],
     "surprised": [
-        {"mesh": "Body", "shape_key": "EyeWide_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "EyeWide_R", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "JawOpen", "weight": 0.5},
+        {"shape_key": "EyeWide_L", "weight": 1.0},
+        {"shape_key": "EyeWide_R", "weight": 1.0},
+        {"shape_key": "JawOpen", "weight": 0.5},
     ],
     "blink": [
-        {"mesh": "Body", "shape_key": "Blink_L", "weight": 1.0},
-        {"mesh": "Body", "shape_key": "Blink_R", "weight": 1.0},
+        {"shape_key": "Blink_L", "weight": 1.0},
+        {"shape_key": "Blink_R", "weight": 1.0},
     ],
     "blinkLeft": [
-        {"mesh": "Body", "shape_key": "Blink_L", "weight": 1.0},
+        {"shape_key": "Blink_L", "weight": 1.0},
     ],
     "blinkRight": [
-        {"mesh": "Body", "shape_key": "Blink_R", "weight": 1.0},
+        {"shape_key": "Blink_R", "weight": 1.0},
     ],
     "aa": [
-        {"mesh": "Body", "shape_key": "JawOpen", "weight": 1.0},
+        {"shape_key": "JawOpen", "weight": 1.0},
     ],
     "ih": [
-        {"mesh": "Body", "shape_key": "MouthWide", "weight": 0.6},
+        {"shape_key": "MouthWide", "weight": 0.6},
     ],
     "ou": [
-        {"mesh": "Body", "shape_key": "MouthPucker", "weight": 1.0},
+        {"shape_key": "MouthPucker", "weight": 1.0},
     ],
     "ee": [
-        {"mesh": "Body", "shape_key": "Smile", "weight": 0.5},
-        {"mesh": "Body", "shape_key": "MouthWide", "weight": 0.5},
+        {"shape_key": "Smile", "weight": 0.5},
+        {"shape_key": "MouthWide", "weight": 0.5},
     ],
     "oh": [
-        {"mesh": "Body", "shape_key": "JawOpen", "weight": 0.7},
+        {"shape_key": "JawOpen", "weight": 0.7},
     ],
 }
 
@@ -403,12 +399,48 @@ def _import_base(bpy, base_path: str) -> None:
 
 
 def _generate_mblab_base(bpy) -> None:
-    """Generate a base mesh using MB-Lab."""
+    """Generate a base mesh using MB-Lab: init → auto_model → finalize."""
+    # Ensure MB-Lab addon is enabled
     try:
-        bpy.ops.mblab.create_human()
-        logger.info("Generated MB-Lab base mesh")
-    except AttributeError:
-        raise RuntimeError("MB-Lab add-on not available — provide --base path")
+        bpy.ops.preferences.addon_enable(module="mb-lab")
+        logger.info("MB-Lab addon enabled")
+    except Exception:
+        pass  # May already be enabled
+
+    # Step 1: Initialize character (creates base mesh f_af01 + armature)
+    try:
+        result = bpy.ops.mbast.init_character()
+        if "FINISHED" in result or "CANCELLED" in result:
+            mesh_objects = [o for o in bpy.data.objects if o.type == "MESH"]
+            if mesh_objects:
+                logger.info(f"MB-Lab character initialized: {mesh_objects[0].name}")
+        else:
+            logger.warning(f"init_character returned {result}")
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"mbast.init_character failed: {e}")
+
+    # Step 2: Auto-model (apply morphs/body proportions)
+    try:
+        result = bpy.ops.mbast.auto_modelling()
+        logger.info(f"MB-Lab auto_modelling: {result}")
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"auto_modelling failed: {e}")
+
+    # Step 3: Finalize (applies shape keys as expressions)
+    try:
+        result = bpy.ops.mbast.finalize_character()
+        logger.info(f"MB-Lab finalize: {result}")
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"finalize_character failed: {e}")
+
+    # Verify we have a mesh and armature
+    mesh_objects = [o for o in bpy.data.objects if o.type == "MESH"]
+    armature_objects = [o for o in bpy.data.objects if o.type == "ARMATURE"]
+
+    if not mesh_objects:
+        raise RuntimeError("MB-Lab failed to create any mesh objects — provide --base path")
+
+    logger.info(f"MB-Lab base generated: mesh={mesh_objects[0].name}, armatures={len(armature_objects)}")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -835,33 +867,46 @@ def _apply_vrm_expressions(bpy, spec: dict) -> None:
 
 
 def _apply_vrm_look_at(bpy, spec: dict) -> None:
-    """Configure VRM 1.0 lookAt. D-012: bone rotation mode."""
+    """Configure VRM 1.0 lookAt. MB-Lab has no eye bones → use expressionOnly."""
     for obj in bpy.data.objects:
         if obj.type == "ARMATURE" and hasattr(obj.data, "vrm_addon_extension"):
             vrm_ext = obj.data.vrm_addon_extension
             look_at = vrm_ext.vrm1.look_at
 
-            # D-012: bone rotation mode (not expression)
-            # D-019: lowercase enum values
-            look_at.type = "bone"
+            # Check for eye bones — MB-Lab rigs lack them, so use expressionOnly
+            has_eye_bones = any(
+                bone.name in ("eye.L", "L_Eye", "Eye_L", "LeftEye",
+                              "eye.R", "R_Eye", "Eye_R", "RightEye")
+                for bone in obj.data.bones
+            )
 
-            # Eye offset calculation
-            left_eye_pos = right_eye_pos = None
-            for bone in obj.data.bones:
-                if bone.name in ("eye.L", "L_Eye", "Eye_L", "LeftEye"):
-                    left_eye_pos = bone.head_local
-                elif bone.name in ("eye.R", "R_Eye", "Eye_R", "RightEye"):
-                    right_eye_pos = bone.head_local
+            if has_eye_bones:
+                # D-012: bone rotation mode when eye bones exist
+                look_at.type = "bone"
 
-            if left_eye_pos and right_eye_pos:
-                center = (left_eye_pos + right_eye_pos) / 2
-                look_at.offset_from_head_bone = (
-                    center[0],
-                    center[1] - left_eye_pos[1],
-                    center[2] - 0.06,
-                )
+                left_eye_pos = right_eye_pos = None
+                for bone in obj.data.bones:
+                    if bone.name in ("eye.L", "L_Eye", "Eye_L", "LeftEye"):
+                        left_eye_pos = bone.head_local
+                    elif bone.name in ("eye.R", "R_Eye", "Eye_R", "RightEye"):
+                        right_eye_pos = bone.head_local
+
+                if left_eye_pos and right_eye_pos:
+                    center = (left_eye_pos + right_eye_pos) / 2
+                    look_at.offset_from_head_bone = (
+                        center[0],
+                        center[1] - left_eye_pos[1],
+                        center[2] - 0.06,
+                    )
+                else:
+                    look_at.offset_from_head_bone = (0.0, 0.0, 0.06)
+
+                logger.info("VRM lookAt configured: bone mode")
+
             else:
-                look_at.offset_from_head_bone = (0.0, 0.0, 0.06)
+                # No eye bones → expressionOnly mode (VRM 1.0 spec)
+                look_at.type = "expression"
+                logger.info("VRM lookAt configured: expression mode (no eye bones)")
 
             # Range configuration
             look_config = spec.get("look_at", {})
@@ -869,8 +914,6 @@ def _apply_vrm_look_at(bpy, spec: dict) -> None:
             look_at.horizontal_outer = float(look_config.get("horizontal_outer_degrees", 15.0))
             look_at.vertical_down = float(look_config.get("vertical_down_degrees", 10.0))
             look_at.vertical_up = float(look_config.get("vertical_up_degrees", 10.0))
-
-            logger.info("VRM lookAt configured: bone mode")
             break
 
 

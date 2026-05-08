@@ -1,0 +1,81 @@
+# =============================================================================
+# Hamr Example Spec — Shield Maiden (Warrior)
+# =============================================================================
+# A fierce Norse warrior with braided hair and battle leathers.
+# Run with: hamr build examples/warrior_shield_maiden.yaml --out output/
+#
+# Iron sharpens iron. So too the forge.
+# =============================================================================
+
+name: "Thora Iron-Bound"
+version: "1.0"
+
+body:
+  height_cm: 175
+  build: athletic
+  skin:
+    base_hex: "#C9956B"
+    undertone: warm
+    sss: true
+  proportions:
+    shoulder_width: 0.50
+    bust: 0.40
+    waist: 0.35
+    hip_width: 0.45
+    leg_length: 0.55
+
+hair:
+  style: braided
+  length: shoulder-plus
+  volume: 0.8
+  curl_tightness: 0.6
+  color:
+    roots: "#8B4513"
+    mid: "#A0522D"
+    tips: "#CD853F"
+    highlight: "#DEB887"
+
+face:
+  jaw: square
+  eyes:
+    iris_hex: "#3B5998"
+    pupil_hex: "#0A0A1A"
+    sclera_hex: "#F0EDE5"
+    shape: narrow
+    size: 1.0
+  mouth:
+    lip_hex: "#9E6B6B"
+    width: 0.40
+    fullness: 0.45
+  cheeks:
+    blush_hex: "#C08070"
+    bone_width: 0.70
+  chin:
+    width: 0.40
+    jaw_width: 0.50
+
+clothing:
+  - name: leather_cuirass
+    type: outerwear
+    primary_hex: "#4A3728"
+    secondary_hex: "#2D1F14"
+    material_category: leather
+  - name: fur_cloak
+    type: outerwear
+    primary_hex: "#8B7355"
+    material_category: fur
+  - name: iron_bracers
+    type: accessories
+    primary_hex: "#708090"
+    material_category: metal
+  - name: combat_boots
+    type: footwear
+    primary_hex: "#3C2415"
+    material_category: leather
+
+export:
+  format: vrm1
+  title: "Thora Iron-Bound"
+  author: "Hamr Forge"
+  version: "1.0"
+  license: CC-BY-4.0

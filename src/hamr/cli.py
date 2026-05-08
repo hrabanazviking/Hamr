@@ -24,7 +24,60 @@ from hamr.core.errors import HamrError, SpecValidationError
 def cmd_build(args: argparse.Namespace) -> int:
     """Build a character from a spec file."""
     from hamr.core.pipeline import BuildPipeline
+    from hamr.core.spec import Spec
+    from hamr.core.builder import _resolve_forges
 
+    # ── Dry-run mode: resolve spec and forges, no Blender ───────────
+    if args.dry_run:
+        try:
+            spec = Spec.from_yaml(args.spec)
+            print(f"✓ Spec parsed: {spec.character.name}")
+        except SpecValidationError as e:
+            print(f"✗ Validation failed: {e}", file=sys.stderr)
+            return 2
+
+        forge_config = _resolve_forges(spec.character)
+        print("✓ Forges resolved:")
+        if forge_config.get("hair"):
+            h = forge_config["hair"]
+            print(f"  Hair: curl={h.get('curl_tightness', 0.0):.2f}, "
+                  f"volume={h.get('volume', 0.0):.2f}, "
+                  f"gradient={h.get('gradient_preset', '?')}, "
+                  f"shells={h.get('style_template', {}).get('shell_count', '?') if isinstance(h.get('style_template'), dict) else '?'}")
+        if forge_config.get("face"):
+            f = forge_config["face"]
+            n_keys = len(f.get("shape_keys", {}))
+            elf_factor = f.get("ear_elf_factor", "?")
+            lip_full = f.get("lip_fullness", "?")
+            print(f"  Face: {n_keys} shape keys, "
+                  f"elf_factor={elf_factor}, "
+                  f"lip_fullness={lip_full}")
+        if forge_config.get("clothing"):
+            c = forge_config["clothing"]
+            print(f"  Clothing: {len(c)} items")
+            for item in c:
+                name = item.get("name", "?") if isinstance(item, dict) else getattr(item, "name", "?")
+                ctype = item.get("cloth_type", "?") if isinstance(item, dict) else getattr(item, "cloth_type", "?")
+                mat = item.get("material_category", "?") if isinstance(item, dict) else getattr(item, "material_category", "?")
+                print(f"    - {name}: {ctype} ({mat})")
+
+        if args.verbose:
+            print("\nVerbose forge config:")
+            for forge_name, config in forge_config.items():
+                print(f"  [{forge_name}]")
+                if hasattr(config, "to_dict"):
+                    for k, v in config.to_dict().items():
+                        print(f"    {k}: {v}")
+                elif isinstance(config, list):
+                    for i, item in enumerate(config):
+                        if hasattr(item, "to_dict"):
+                            print(f"    [{i}] {item.to_dict()}")
+                        else:
+                            print(f"    [{i}] {item}")
+        print("\n⚡ Dry run complete — no Blender launched.")
+        return 0
+
+    # ── Full build mode ─────────────────────────────────────────────
     pipeline = BuildPipeline(
         blender_path=args.blender_path,
         blender_timeout=args.timeout,
@@ -52,6 +105,8 @@ def cmd_build(args: argparse.Namespace) -> int:
         if result.output_size_mb:
             print(f"  Size: {result.output_size_mb:.1f} MB")
         print(f"  Time: {result.elapsed:.1f}s")
+        if args.verbose and result.blender_result:
+            print(f"  Blender stdout: {result.blender_result.stdout[-500:]!r}")
         return 0
     else:
         print(f"✗ Build failed:", file=sys.stderr)
@@ -143,9 +198,11 @@ def main() -> int:
     build_parser = subparsers.add_parser("build", help="Build a character from spec")
     build_parser.add_argument("spec", help="Path to YAML spec file")
     build_parser.add_argument("--out", "-o", default="output/", help="Output directory")
-    build_parser.add_argument("--format", "-f", default="vrm", choices=["vrm", "glb"])
+    build_parser.add_argument("--format", "-f", default="vrm1", choices=["vrm1", "glb", "blend"])
     build_parser.add_argument("--base", "-b", default=None, help="Base mesh path (.vrm, .fbx, .glb)")
     build_parser.add_argument("--no-validate", action="store_true", help="Skip validation")
+    build_parser.add_argument("--dry-run", action="store_true", help="Resolve spec and forges without launching Blender")
+    build_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output with forge details")
     build_parser.add_argument("--keep-temp", action="store_true", help="Keep temp files (debug)")
     build_parser.add_argument("--max-tex", type=int, default=0, help="Max texture resolution (0=unlimited)")
     build_parser.add_argument("--timeout", type=int, default=600, help="Blender timeout in seconds")
