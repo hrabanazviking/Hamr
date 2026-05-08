@@ -31,6 +31,11 @@ from hamr.core.perf_gate import (
     estimate_from_preset,
     format_gate_report,
 )
+from hamr.core.texture_procedural import (
+    ProceduralTexture,
+    ProceduralTexturePipeline,
+    PILLOW_AVAILABLE,
+)
 
 __all__ = [
     "Spec",
@@ -62,4 +67,7 @@ __all__ = [
     "select_budget_tier",
     "estimate_from_preset",
     "format_gate_report",
+    "ProceduralTexture",
+    "ProceduralTexturePipeline",
+    "PILLOW_AVAILABLE",
 ]
