@@ -273,6 +273,22 @@ def main() -> int:
     output_path = Path(args["output"])
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # ── Pre-flight: Performance budget check ──────────────────────────────
+    try:
+        from hamr.core.perf import check_budget, DEFAULT_PI5_BUDGET
+        char_spec = spec_data.get("character", spec_data)
+        perf_report = check_budget(char_spec, DEFAULT_PI5_BUDGET)
+        if not perf_report.within_budget:
+            logger.warning(f"⚠ Spec over budget: {perf_report.summary()}")
+            if not args.get("force_over_budget"):
+                logger.error("Aborting: spec exceeds performance budget. Use --force-over-budget to override.")
+                return 2
+        elif perf_report.warnings:
+            for w in perf_report.warnings:
+                logger.warning(f"Budget warning: {w}")
+    except Exception as exc:
+        logger.debug(f"Performance budget check skipped: {exc}")
+
     # ── Step 0: Enable VRM Add-on ────────────────────────────────────────
     try:
         import addon_utils  # type: ignore
@@ -314,14 +330,87 @@ def main() -> int:
         traceback.print_exc(file=sys.stderr)
         return 4
 
-    # ── Step 4: Export VRM ────────────────────────────────────────────────
-    os.environ["BLENDER_VRM_AUTOMATIC_LICENSE_CONFIRMATION"] = "true"
-
+    # ── Find armature (used by integration steps) ───────────────────────
     armature_name = ""
     for obj in bpy.data.objects:
         if obj.type == "ARMATURE":
             armature_name = obj.name
             break
+
+    # ══════════════════════════════════════════════════════════════════════
+    # ── Phase 12 integration steps ──────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+
+    stub_result = None  # Carried forward for VRM bone mapping
+
+    # ── Step 3a: Create stub bones ────────────────────────────────────────
+    if armature_name:
+        try:
+            stub_result = _integrate_stub_bones(bpy, armature_name)
+        except Exception as exc:
+            logger.warning(f"Stub bone integration failed: {exc}")
+
+    # ── Step 3b: Generate hair mesh ───────────────────────────────────────
+    hair_result = None
+    try:
+        hair_result = _integrate_hair_mesh(bpy, spec_data, forge_config, armature_name)
+    except Exception as exc:
+        logger.warning(f"Hair mesh integration failed: {exc}")
+
+    # ── Step 3c: Generate clothing meshes ─────────────────────────────────
+    clothing_results = []
+    try:
+        clothing_results = _integrate_clothing_meshes(
+            bpy, spec_data, forge_config, armature_name
+        )
+    except Exception as exc:
+        logger.warning(f"Clothing mesh integration failed: {exc}")
+
+    # ── Step 3d: Weight paint all meshes ─────────────────────────────────
+    try:
+        _integrate_weight_paint(bpy, armature_name, hair_result, clothing_results)
+    except Exception as exc:
+        logger.warning(f"Weight paint integration failed: {exc}")
+
+    # ── Step 3e: Configure spring bones ───────────────────────────────────
+    try:
+        _integrate_spring_bones(
+            bpy, armature_name, spec_data, forge_config,
+            hair_result, clothing_results,
+        )
+    except Exception as exc:
+        logger.warning(f"Spring bone integration failed: {exc}")
+
+    # ── Step 3f: Configure first-person annotations ──────────────────────
+    try:
+        _integrate_first_person(bpy, armature_name, hair_result, clothing_results)
+    except Exception as exc:
+        logger.warning(f"First-person integration failed: {exc}")
+
+    # ══════════════════════════════════════════════════════════════════════
+    # ── End Phase 12 integration ────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+
+    # ── Step 4: VRM humanoid bone mapping (with stub merge) ──────────────
+    _apply_vrm_humanoid(bpy, spec_data, stub_result=stub_result)
+
+    # ── Step 5: VRM metadata ─────────────────────────────────────────────
+    _apply_vrm_metadata(bpy, spec_data)
+
+    # ── Step 6: VRM expressions ──────────────────────────────────────────
+    _apply_vrm_expressions(bpy, spec_data)
+
+    # ── Step 7: VRM lookAt ───────────────────────────────────────────────
+    _apply_vrm_look_at(bpy, spec_data)
+
+    # ── Step 8: Export VRM ───────────────────────────────────────────────
+    os.environ["BLENDER_VRM_AUTOMATIC_LICENSE_CONFIRMATION"] = "true"
+
+    if not armature_name:
+        for obj in bpy.data.objects:
+            if obj.type == "ARMATURE":
+                armature_name = obj.name
+                break
 
     try:
         result = bpy.ops.export_scene.vrm(
@@ -340,11 +429,28 @@ def main() -> int:
         traceback.print_exc(file=sys.stderr)
         return 5
 
-    # ── Step 5: Post-export validation ────────────────────────────────────
+    # ── Step 9: Post-export validation ────────────────────────────────────
     try:
         _validate_vrm(str(output_path))
     except Exception as exc:
         logger.warning(f"Post-export validation warning: {exc}")
+
+    # ── Step 10: Rig verification ─────────────────────────────────────────
+    try:
+        from hamr.rigs.verify import RigVerifier
+        verifier = RigVerifier()
+        report = verifier.verify(str(output_path))
+        if report.get("warnings"):
+            for w in report["warnings"]:
+                logger.warning(f"Rig warning: {w}")
+        if report.get("missing"):
+            logger.warning(f"Missing bones: {report['missing']}")
+        else:
+            logger.info("Rig verification passed")
+    except ImportError:
+        logger.debug("Rig verification module not available outside Blender")
+    except Exception as exc:
+        logger.warning(f"Rig verification skipped: {exc}")
 
     logger.info("Build complete.")
     return 0
@@ -448,7 +554,11 @@ def _generate_mblab_base(bpy) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _apply_spec(bpy, spec: dict, forge_config: dict | None = None) -> None:
-    """Apply the Hamr CharacterSpec to the current Blender scene."""
+    """Apply the Hamr CharacterSpec to the current Blender scene.
+
+    Only applies visual/transform properties. VRM mapping and Phase 12
+    integration steps are handled separately in main().
+    """
     _apply_colors(bpy, spec)
     _apply_height(bpy, spec)
 
@@ -457,12 +567,6 @@ def _apply_spec(bpy, spec: dict, forge_config: dict | None = None) -> None:
         _apply_face_from_forge(bpy, forge_config)
         _apply_hair_from_forge(bpy, forge_config)
         _apply_clothing_from_forge(bpy, forge_config)
-
-    # VRM humanoid mapping for non-VRM bases
-    _apply_vrm_humanoid(bpy, spec)
-    _apply_vrm_metadata(bpy, spec)
-    _apply_vrm_expressions(bpy, spec)
-    _apply_vrm_look_at(bpy, spec)
 
 
 def _classify_material(mat_name: str) -> str | None:
@@ -737,8 +841,13 @@ def _apply_height(bpy, spec: dict) -> None:
                 break
 
 
-def _apply_vrm_humanoid(bpy, spec: dict) -> None:
-    """Configure VRM 1.0 humanoid bone mapping. D-008, D-009, D-017, D-018."""
+def _apply_vrm_humanoid(bpy, spec: dict, stub_result=None) -> None:
+    """Configure VRM 1.0 humanoid bone mapping. D-008, D-009, D-017, D-018.
+    
+    If stub_result is provided (from Phase 12 _integrate_stub_bones),
+    the stub bone map is merged into the active bone map so that
+    newly created stub bones are included in VRM mapping.
+    """
     armature = None
     for obj in bpy.data.objects:
         if obj.type == "ARMATURE":
@@ -767,6 +876,13 @@ def _apply_vrm_humanoid(bpy, spec: dict) -> None:
     spec_bones = spec.get("bones", {})
     if spec_bones:
         bone_map = {**bone_map, **spec_bones}
+
+    # Phase 12: Merge stub bone map for newly-created bones (jaw, eyes)
+    if stub_result is not None and hasattr(stub_result, "created_bones") and stub_result.created_bones:
+        from hamr.rigs.stub_bones import get_stub_bone_map
+        stub_map = get_stub_bone_map()
+        bone_map.update(stub_map)
+        logger.info(f"Merged {len(stub_map)} stub bone entries into VRM bone map")
 
     # D-018: Use canonical API
     bone_names_in_armature = set(b.name for b in armature.data.bones)
@@ -940,6 +1056,330 @@ def _validate_vrm(output_path: str) -> None:
 
     size_mb = path.stat().st_size / (1024 * 1024)
     logger.info(f"VRM validation passed — {size_mb:.1f} MB")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 12 Integration Helper Functions
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _find_armature(bpy) -> str:
+    """Find the armature object in the current Blender scene.
+
+    Returns the name of the first ARMATURE object, or empty string.
+    """
+    for obj in bpy.data.objects:
+        if obj.type == "ARMATURE":
+            return obj.name
+    return ""
+
+
+def _find_body_mesh(bpy) -> str:
+    """Find the main body mesh (first non-hair, non-clothing mesh).
+
+    Returns the name of the first MESH object, or empty string.
+    """
+    for obj in bpy.data.objects:
+        if obj.type == "MESH":
+            name_lower = obj.name.lower()
+            # Skip hair and clothing meshes — we want the body
+            if "hair" not in name_lower and "cloth" not in name_lower:
+                return obj.name
+    # Fallback: return any mesh
+    for obj in bpy.data.objects:
+        if obj.type == "MESH":
+            return obj.name
+    return ""
+
+
+def _integrate_stub_bones(bpy, armature_name: str):
+    """Step 3a: Create stub bones for missing VRM 1.0 humanoid bones.
+
+    Creates micro-stub bones (jaw, leftEye, rightEye) that MB-Lab
+    rigs lack, positioning them correctly relative to the head bone.
+    """
+    from hamr.rigs.stub_bones import create_missing_bones
+
+    result = create_missing_bones(armature_name, base_type="mblab")
+    if result.created_bones:
+        logger.info(f"Stub bones created: {list(result.created_bones.keys())}")
+    else:
+        logger.info("All VRM bones already present — no stubs needed")
+    return result
+
+
+def _integrate_hair_mesh(bpy, spec_data: dict, forge_config, armature_name: str):
+    """Step 3b: Generate procedural hair mesh from spec.
+
+    Uses HairMeshGenerator to create hair geometry, materials, and
+    bone chains for spring physics.
+    """
+    from hamr.hair.mesh import HairMeshGenerator
+
+    hair_spec = spec_data.get("hair") if isinstance(spec_data, dict) else None
+    if not hair_spec:
+        # Try forge_config
+        if forge_config and isinstance(forge_config, dict):
+            hair_spec = forge_config.get("hair")
+        if not hair_spec:
+            return None
+
+    hair_style = (
+        hair_spec.get("style", hair_spec.get("length", "long_straight"))
+        if isinstance(hair_spec, dict)
+        else "long_straight"
+    )
+    if hair_style == "none":
+        return None
+
+    # Determine head position from armature
+    head_pos = (0.0, 0.0, 1.65)
+    head_radius = 0.10
+    if armature_name:
+        armature = bpy.data.objects.get(armature_name)
+        if armature and hasattr(armature, "data") and armature.data:
+            head_bone = armature.data.bones.get("head")
+            if head_bone:
+                head_pos = tuple(armature.matrix_world @ head_bone.head_local)
+                head_radius = 0.10
+
+    # Build color config from hair spec
+    color_config = None
+    hair_color = hair_spec.get("color") if isinstance(hair_spec, dict) else None
+    if hair_color and isinstance(hair_color, dict):
+        roots_hex = hair_color.get("roots", "#C4A265")
+        tips_hex = hair_color.get("tips", "#F5E6B8")
+        color_config = {
+            "roots_hsv": _hex_to_hsv(roots_hex),
+            "tips_hsv": _hex_to_hsv(tips_hex),
+        }
+
+    gen = HairMeshGenerator()
+    result = gen.generate(
+        style_name=hair_style,
+        head_center=head_pos,
+        head_radius=head_radius,
+        color_config=color_config,
+    )
+    logger.info(
+        f"Hair mesh: {result.object_name}, "
+        f"{result.vertex_count} verts, {result.triangle_count} tris"
+    )
+    return result
+
+
+def _integrate_clothing_meshes(bpy, spec_data: dict, forge_config, armature_name: str):
+    """Step 3c: Generate procedural clothing meshes from spec.
+
+    Iterates over clothing spec items, generating each one via
+    ClothingMeshGenerator with shrinkwrap and weight transfer.
+    """
+    from hamr.clothing.mesh import ClothingMeshGenerator
+    from hamr.core.models import ClothingSpec
+
+    clothing_specs = (
+        spec_data.get("clothing", []) if isinstance(spec_data, dict) else []
+    )
+
+    # Also check forge_config for clothing
+    if not clothing_specs and forge_config and isinstance(forge_config, dict):
+        clothing_specs = forge_config.get("clothing", [])
+
+    if not clothing_specs:
+        return []
+
+    body_mesh_name = _find_body_mesh(bpy)
+    if not body_mesh_name:
+        logger.warning("No body mesh found for clothing shrinkwrap")
+        return []
+
+    gen = ClothingMeshGenerator()
+    results = []
+
+    for i, cloth_spec in enumerate(clothing_specs):
+        try:
+            cloth_obj = _dict_to_clothing_spec(cloth_spec, index=i)
+            result = gen.generate(
+                spec=cloth_obj,
+                body_mesh_name=body_mesh_name,
+                armature_name=armature_name,
+            )
+            results.append(result)
+            logger.info(
+                f"Clothing mesh {i}: {result.mesh_name}, "
+                f"{result.triangle_count} tris"
+            )
+        except Exception as exc:
+            logger.warning(f"Clothing mesh {i} failed: {exc}")
+
+    return results
+
+
+def _integrate_weight_paint(bpy, armature_name: str, hair_result, clothing_results: list):
+    """Step 3d: Apply weight painting to all generated meshes.
+
+    Smooths body mesh weights, transfers to clothing meshes,
+    and normalizes hair mesh weights.
+    """
+    from hamr.rigs.weights import WeightPaintEngine
+
+    engine = WeightPaintEngine()
+
+    # Smooth weights on body mesh
+    body_mesh_name = _find_body_mesh(bpy)
+    if body_mesh_name:
+        engine.paint_smooth(
+            armature_name=armature_name,
+            mesh_name=body_mesh_name,
+            influence_radius=0.3,
+            iterations=3,
+        )
+        engine.normalize_weights(armature_name, body_mesh_name)
+
+    # Transfer weights from body to clothing
+    for cloth_result in (clothing_results or []):
+        if hasattr(cloth_result, "mesh_name") and body_mesh_name:
+            try:
+                engine.transfer_weights(
+                    source_mesh=body_mesh_name,
+                    target_mesh=cloth_result.mesh_name,
+                )
+                engine.normalize_weights(armature_name, cloth_result.mesh_name)
+            except Exception as exc:
+                logger.warning(f"Weight transfer to {cloth_result.mesh_name} failed: {exc}")
+
+    # Normalize hair mesh weights
+    if hair_result and hasattr(hair_result, "object_name") and hair_result.object_name:
+        try:
+            engine.normalize_weights(armature_name, hair_result.object_name)
+        except Exception as exc:
+            logger.warning(f"Hair weight normalization failed: {exc}")
+
+
+def _integrate_spring_bones(bpy, armature_name: str, spec_data: dict,
+                              forge_config, hair_result, clothing_results: list):
+    """Step 3e: Configure VRM 1.0 spring bones for dynamic secondary motion.
+
+    Sets up hair spring, breast spring, and clothing spring groups
+    with appropriate collider spheres.
+    """
+    from hamr.rigs.spring_bones import (
+        configure_hair_spring,
+        configure_breast_spring,
+        configure_clothing_spring,
+        apply_spring_bones,
+        SpringBoneCollider,
+    )
+
+    # Build collider list from defaults (convert dicts to SpringBoneCollider objects)
+    default_colliders = [
+        {"name": "head_collider", "bone": "head", "offset": (0.0, 0.0, 0.0), "radius": 0.08},
+        {"name": "upper_body_collider", "bone": "upperChest", "offset": (0.0, 0.0, 0.0), "radius": 0.12},
+        {"name": "lower_body_collider", "bone": "spine", "offset": (0.0, 0.0, 0.0), "radius": 0.1},
+        {"name": "left_shoulder_collider", "bone": "clavicle_L", "offset": (0.0, 0.0, 0.0), "radius": 0.05},
+        {"name": "right_shoulder_collider", "bone": "clavicle_R", "offset": (0.0, 0.0, 0.0), "radius": 0.05},
+    ]
+    colliders = [
+        SpringBoneCollider(
+            name=c["name"],
+            bone=c["bone"],
+            offset=c["offset"],
+            radius=c["radius"],
+        )
+        for c in default_colliders
+    ]
+
+    spring_groups = []
+
+    # Hair spring bones
+    physics_spec = None
+    hair_spec = spec_data.get("hair") if isinstance(spec_data, dict) else None
+    if hair_spec and isinstance(hair_spec, dict):
+        hair_phys = hair_spec.get("physics") or hair_spec.get("hair_physics")
+        if hair_phys and isinstance(hair_phys, dict):
+            try:
+                from hamr.core.models import HairPhysicsSpec
+                physics_spec = HairPhysicsSpec(**hair_phys)
+            except Exception:
+                physics_spec = None
+
+    hair_spring = configure_hair_spring(physics_spec)
+
+    # Attach bone chains from hair mesh if available
+    if hair_result and hasattr(hair_result, "bone_chain") and hair_result.bone_chain:
+        hair_spring.bone_chains = [hair_result.bone_chain]
+
+    spring_groups.append(hair_spring)
+
+    # Breast spring bones
+    body_spec = spec_data.get("body", {}) if isinstance(spec_data, dict) else {}
+    breast_spring = configure_breast_spring(body_spec)
+    spring_groups.append(breast_spring)
+
+    # Clothing spring bones
+    for cloth_result in (clothing_results or []):
+        if hasattr(cloth_result, "mesh_name") and cloth_result.mesh_name:
+            cloth_type = "skirt"  # default
+            cloth_spring = configure_clothing_spring(
+                clothing_name=cloth_result.mesh_name,
+                cloth_type=cloth_type,
+            )
+            spring_groups.append(cloth_spring)
+
+    result = apply_spring_bones(
+        armature_name=armature_name,
+        spring_groups=spring_groups,
+        colliders=colliders,
+    )
+    logger.info(
+        f"Spring bones applied: "
+        f"{len(result.get('spring_groups', []))} groups, "
+        f"{len(result.get('colliders', []))} colliders"
+    )
+
+
+def _integrate_first_person(bpy, armature_name: str, hair_result, clothing_results: list):
+    """Step 3f: Configure VRM 1.0 first-person view annotations.
+
+    Classifies all meshes as thirdPersonOnly, both, or firstPersonOnly
+    for correct VR first-person rendering.
+    """
+    from hamr.export.first_person import configure_first_person
+
+    # Collect all mesh names in the scene
+    all_mesh_names = [
+        obj.name for obj in bpy.data.objects if obj.type == "MESH"
+    ]
+
+    config = configure_first_person(
+        armature_name=armature_name,
+        mesh_names=all_mesh_names,
+    )
+    logger.info(
+        f"First-person annotations: {len(config.mesh_annotations)} meshes, "
+        f"bone={config.first_person_bone}"
+    )
+
+
+def _dict_to_clothing_spec(cloth_spec, index: int = 0):
+    """Convert a clothing spec dict into a ClothingSpec dataclass.
+
+    If the spec is already a ClothingSpec, return it as-is.
+    """
+    from hamr.core.models import ClothingSpec
+
+    if isinstance(cloth_spec, ClothingSpec):
+        return cloth_spec
+    if isinstance(cloth_spec, dict):
+        name = cloth_spec.get("name", f"clothing_{index}")
+        cloth_type = cloth_spec.get("type", "tshirt")
+        return ClothingSpec(
+            name=name,
+            type=cloth_type,
+            primary_hex=cloth_spec.get("primary_hex", "#1A1A2E"),
+            accent_hex=cloth_spec.get("accent_hex", "#FFFFFF"),
+            trim_hex=cloth_spec.get("trim_hex", "#FFD700"),
+        )
+    return cloth_spec
 
 
 if __name__ == "__main__":
