@@ -21,9 +21,20 @@ import json
 import sys
 from pathlib import Path
 
+from hamr.core.a11y import CLIOptions, format_output, format_json_output, format_error, should_suppress_output, get_actionable_suggestion
 from hamr.core.constants import BODY_PRESETS
 from hamr.core.errors import HamrError, SpecValidationError
 from hamr.core.presets import CHARACTER_PRESETS
+
+
+def _a11y_from_args(args: argparse.Namespace) -> CLIOptions:
+    """Build CLIOptions from parsed argparse Namespace."""
+    return CLIOptions(
+        no_color=getattr(args, "no_color", False),
+        quiet=getattr(args, "quiet", False),
+        json_output=getattr(args, "json", False),
+        verbose=getattr(args, "verbose", False),
+    )
 
 
 def cmd_build(args: argparse.Namespace) -> int:
@@ -34,13 +45,20 @@ def cmd_build(args: argparse.Namespace) -> int:
     from hamr.core.perf import MEMORY_TIERS, check_budget
     from hamr.core.presets import CHARACTER_PRESETS, resolve_preset
 
+    opts = _a11y_from_args(args)
+
     # ── Resolve spec source: either --preset or spec file ──────────
     if args.preset:
         # Build from a named preset
         if args.preset not in CHARACTER_PRESETS:
-            print(f"✗ Unknown preset: {args.preset!r}", file=sys.stderr)
-            print(f"  Available: {', '.join(sorted(CHARACTER_PRESETS.keys()))}",
-                  file=sys.stderr)
+            if opts.json_output:
+                print(format_json_output(format_error(
+                    FileNotFoundError(f"Unknown preset: {args.preset!r}"), opts
+                ), opts), file=sys.stderr)
+            else:
+                print(format_output(f"✗ Unknown preset: {args.preset!r}", severity="error", options=opts), file=sys.stderr)
+                print(format_output(f"  Available: {', '.join(sorted(CHARACTER_PRESETS.keys()))}", severity="info", options=opts),
+                      file=sys.stderr)
             return 2
 
         preset_data = resolve_preset(args.preset)
@@ -194,24 +212,47 @@ def cmd_build(args: argparse.Namespace) -> int:
             max_tex=args.max_tex,
         )
     except SpecValidationError as e:
-        print(f"✗ Validation failed: {e}", file=sys.stderr)
+        if opts.json_output:
+            print(format_json_output(format_error(e, opts), opts), file=sys.stderr)
+        else:
+            print(format_output(f"✗ Validation failed: {e}", severity="error", options=opts), file=sys.stderr)
+            print(format_output(f"  Suggestion: {get_actionable_suggestion(e)}", severity="info", options=opts), file=sys.stderr)
         return 2
     except HamrError as e:
-        print(f"✗ Build error: {e}", file=sys.stderr)
+        if opts.json_output:
+            print(format_json_output(format_error(e, opts), opts), file=sys.stderr)
+        else:
+            print(format_output(f"✗ Build error: {e}", severity="error", options=opts), file=sys.stderr)
+            print(format_output(f"  Suggestion: {get_actionable_suggestion(e)}", severity="info", options=opts), file=sys.stderr)
         return 1
 
     if result.success:
-        print(f"✓ Character built: {result.output_path}")
-        if result.output_size_mb:
-            print(f"  Size: {result.output_size_mb:.1f} MB")
-        print(f"  Time: {result.elapsed:.1f}s")
-        if args.verbose and result.blender_result:
-            print(f"  Blender stdout: {result.blender_result.stdout[-500:]!r}")
+        if opts.json_output:
+            result_data = {
+                "success": True,
+                "output_path": str(result.output_path) if result.output_path else None,
+                "output_size_mb": result.output_size_mb,
+                "elapsed_seconds": result.elapsed,
+            }
+            print(format_json_output(result_data, opts))
+        elif not should_suppress_output(opts):
+            print(format_output(f"✓ Character built: {result.output_path}", severity="success", options=opts))
+            if result.output_size_mb:
+                print(f"  Size: {result.output_size_mb:.1f} MB")
+            print(f"  Time: {result.elapsed:.1f}s")
+            if args.verbose and result.blender_result:
+                print(f"  Blender stdout: {result.blender_result.stdout[-500:]!r}")
         return 0
     else:
-        print(f"✗ Build failed:", file=sys.stderr)
-        for err in result.errors:
-            print(f"  • {err}", file=sys.stderr)
+        if opts.json_output:
+            print(format_json_output({
+                "success": False,
+                "errors": [str(e) for e in result.errors],
+            }, opts), file=sys.stderr)
+        else:
+            print(format_output("✗ Build failed:", severity="error", options=opts), file=sys.stderr)
+            for err in result.errors:
+                print(format_output(f"  • {err}", severity="error", options=opts), file=sys.stderr)
         return 1
 
 
@@ -219,15 +260,27 @@ def cmd_validate(args: argparse.Namespace) -> int:
     """Validate a spec without building."""
     from hamr.core.pipeline import BuildPipeline
 
+    opts = _a11y_from_args(args)
     pipeline = BuildPipeline()
     errors = pipeline.validate_only(args.spec)
+
+    if should_suppress_output(opts) and not opts.json_output:
+        return 1 if errors else 0
+
     if errors:
-        print(f"✗ {len(errors)} validation error(s):")
-        for err in errors:
-            print(f"  • {err}")
+        if opts.json_output:
+            error_data = [format_error(e, opts) if isinstance(e, Exception) else {"message": str(e)} for e in errors]
+            print(format_json_output({"valid": False, "errors": error_data}, opts))
+        else:
+            print(format_output(f"✗ {len(errors)} validation error(s):", severity="error", options=opts))
+            for err in errors:
+                print(format_output(f"  • {err}", severity="error", options=opts))
         return 1
     else:
-        print("✓ Spec is valid")
+        if opts.json_output:
+            print(format_json_output({"valid": True}, opts))
+        else:
+            print(format_output("✓ Spec is valid", severity="success", options=opts))
         return 0
 
 
@@ -235,12 +288,20 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     """Inspect a VRM/GLB file for compliance."""
     from hamr.core.builder import inspect
 
+    opts = _a11y_from_args(args)
+
     try:
         report = inspect(args.path, targets=args.targets)
-        print(json.dumps(report, indent=2, default=str))
+        if opts.json_output:
+            print(format_json_output(report, opts))
+        else:
+            print(json.dumps(report, indent=2, default=str))
         return 0
     except HamrError as e:
-        print(f"✗ Inspection error: {e}", file=sys.stderr)
+        if opts.json_output:
+            print(format_json_output(format_error(e, opts), opts))
+        else:
+            print(format_output(f"✗ Inspection error: {e}", severity="error", options=opts), file=sys.stderr)
         return 1
 
 
@@ -248,10 +309,29 @@ def cmd_list_presets(args: argparse.Namespace) -> int:
     """List available presets (body + character)."""
     from hamr.core.presets import CHARACTER_PRESETS
 
+    opts = _a11y_from_args(args)
     what = getattr(args, "what", "all")
 
+    if opts.json_output:
+        data = {}
+        if what in ("all", "character"):
+            data["character"] = {
+                name: {"display_name": p["display_name"], "description": p["description"]}
+                for name, p in CHARACTER_PRESETS.items()
+            }
+        if what in ("all", "body"):
+            data["body"] = {
+                name: {k: v for k, v in proportions.items()}
+                for name, proportions in BODY_PRESETS.items()
+            }
+        print(format_json_output(data, opts))
+        return 0
+
+    if should_suppress_output(opts):
+        return 0
+
     if what in ("all", "character"):
-        print("Character presets:")
+        print(format_output("Character presets:", severity="info", options=opts))
         print("-" * 60)
         for name, preset in CHARACTER_PRESETS.items():
             print(f"  {name:30s}  {preset['display_name']}")
@@ -260,7 +340,7 @@ def cmd_list_presets(args: argparse.Namespace) -> int:
     if what in ("all", "body"):
         if what == "all":
             print()
-        print("Body presets:")
+        print(format_output("Body presets:", severity="info", options=opts))
         print("-" * 60)
         for name, proportions in BODY_PRESETS.items():
             desc = ", ".join(f"{k}={v:.2f}" for k, v in proportions.items())
@@ -273,23 +353,43 @@ def cmd_verify_rig(args: argparse.Namespace) -> int:
     """Verify a VRM file's rig structure."""
     from hamr.rigs.verify import verify_vrm_rig
 
+    opts = _a11y_from_args(args)
+
     vrm_path = args.path
     try:
         result = verify_vrm_rig(vrm_path)
     except FileNotFoundError:
-        print(f"✗ File not found: {vrm_path}", file=sys.stderr)
+        if opts.json_output:
+            print(format_json_output(format_error(FileNotFoundError(vrm_path), opts), opts), file=sys.stderr)
+        else:
+            print(format_output(f"✗ File not found: {vrm_path}", severity="error", options=opts), file=sys.stderr)
         return 1
     except Exception as e:
-        print(f"✗ Error reading file: {e}", file=sys.stderr)
+        if opts.json_output:
+            print(format_json_output(format_error(e, opts), opts), file=sys.stderr)
+        else:
+            print(format_output(f"✗ Error reading file: {e}", severity="error", options=opts), file=sys.stderr)
         return 1
 
     report = result["report"]
+
+    if opts.json_output:
+        print(format_json_output({
+            "valid": result["valid"],
+            "naming_issues": result.get("naming_issues", []),
+            "summary": report.summary(),
+        }, opts))
+        return 0 if result["valid"] else 1
+
+    if should_suppress_output(opts):
+        return 0 if result["valid"] else 1
+
     print(report.summary())
 
     valid = result["valid"]
 
     if args.strict and result["naming_issues"]:
-        print("\n⚠  Strict mode: treating naming issues as errors")
+        print(format_output("\n⚠  Strict mode: treating naming issues as errors", severity="warning", options=opts))
         valid = False
 
     return 0 if valid else 1
@@ -299,13 +399,22 @@ def cmd_check_env(args: argparse.Namespace) -> int:
     """Check the build environment for readiness."""
     from hamr.core.pipeline import BuildPipeline
 
+    opts = _a11y_from_args(args)
     pipeline = BuildPipeline()
     env = pipeline.check_environment()
 
-    print("Hamr Build Environment Check")
+    blender_ok = env.get("blender_available", False)
+
+    if opts.json_output:
+        print(format_json_output(env, opts))
+        return 0 if blender_ok else 1
+
+    if should_suppress_output(opts):
+        return 0 if blender_ok else 1
+
+    print(format_output("Hamr Build Environment Check", severity="info", options=opts))
     print("=" * 40)
 
-    blender_ok = env.get("blender_available", False)
     print(f"  Blender:     {'✓ ' + str(env.get('blender_version', '')) if blender_ok else '✗ Not found'}")
     print(f"  VRM Addon:   {'✓ Installed' if env.get('vrm_addon') else '✗ Not found' if env.get('vrm_addon') is not None else '? Unknown'}")
     print(f"  MB-Lab:      {'✓ Installed' if env.get('mblab_addon') else '✗ Not found' if env.get('mblab_addon') is not None else '? Unknown'}")
@@ -314,16 +423,26 @@ def cmd_check_env(args: argparse.Namespace) -> int:
     if blender_ok:
         return 0
     else:
-        print("\n⚠  Blender not found. Install Blender and add it to PATH.")
-        print("   Or specify path with --blender-path.")
+        print(format_output("\n⚠  Blender not found. Install Blender and add it to PATH.", severity="warning", options=opts))
+        print(format_output("   Or specify path with --blender-path.", severity="info", options=opts))
         return 1
 
 
 def cmd_version(args: argparse.Namespace) -> int:
     """Print version information."""
     from hamr import __version__, __author__
-    print(f"Hamr {__version__} — The Shape-Skin Engine")
-    print(f"By {__author__}")
+
+    opts = _a11y_from_args(args)
+
+    if opts.json_output:
+        print(format_json_output({"version": __version__, "author": __author__}, opts))
+        return 0
+
+    if should_suppress_output(opts):
+        return 0
+
+    print(format_output(f"Hamr {__version__} — The Shape-Skin Engine", severity="info", options=opts))
+    print(format_output(f"By {__author__}", severity="info", options=opts))
     return 0
 
 
@@ -331,12 +450,19 @@ def cmd_docs(args: argparse.Namespace) -> int:
     """Generate documentation files."""
     from hamr.docs.generate import generate_all
 
+    opts = _a11y_from_args(args)
     output_dir = getattr(args, "output", "docs")
     try:
         generate_all(output_dir=output_dir)
     except Exception as e:
-        print(f"✗ Documentation generation failed: {e}", file=sys.stderr)
+        if opts.json_output:
+            print(format_json_output(format_error(e, opts), opts), file=sys.stderr)
+        else:
+            print(format_output(f"✗ Documentation generation failed: {e}", severity="error", options=opts), file=sys.stderr)
         return 1
+
+    if not should_suppress_output(opts) and not opts.json_output:
+        print(format_output(f"✓ Documentation generated in {output_dir}/", severity="success", options=opts))
     return 0
 
 
@@ -346,6 +472,21 @@ def main() -> int:
         prog="hamr",
         description="ᚺᚨᛗᚱ — The Shape-Skin Engine",
     )
+
+    # ── Global accessibility flags ───────────────────────────────────
+    parser.add_argument(
+        "--no-color", action="store_true",
+        help="Disable ANSI color codes in output",
+    )
+    parser.add_argument(
+        "--quiet", "-q", action="store_true",
+        help="Suppress non-essential output; produce compact JSON when --json is set",
+    )
+    parser.add_argument(
+        "--json", action="store_true",
+        help="Output results as JSON for machine consumption",
+    )
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # build
