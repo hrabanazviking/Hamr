@@ -3,120 +3,132 @@ Hamr CLI — The forge's command-line interface.
 
 Usage:
     hamr build spec.yaml --out output/
-    hamr inspect output/avatar.vrm --targets VRCHAT
     hamr validate spec.yaml
+    hamr inspect output/avatar.vrm --targets VRCHAT
+    hamr list-presets
     hamr version
 """
 
 from __future__ import annotations
 
+import argparse
+import json
 import sys
-import time
 from pathlib import Path
 
-import click
-from rich.console import Console
-
-from hamr.core.spec import Spec
+from hamr.core.constants import BODY_PRESETS
 from hamr.core.validate import validate_spec
-from hamr.core.models import CharacterSpec
-
-console = Console()
+from hamr.core.errors import HamrError, SpecValidationError
 
 
-@click.group()
-@click.version_option(version="0.1.0", prog_name="hamr")
-def main() -> None:
-    """ᚺᚨᛗᚱ — The Shape-Skin Engine"""
-    pass
-
-
-@main.command()
-@click.argument("spec_path", type=click.Path(exists=True))
-@click.option("--out", "-o", "output_dir", default="output", help="Output directory")
-@click.option("--format", "-f", "export_format", default="vrm1",
-              type=click.Choice(["vrm1", "glb", "blend"]),
-              help="Export format")
-@click.option("--json-output", is_flag=True, help="Output results as JSON")
-def build(spec_path: str, output_dir: str, export_format: str, json_output: bool) -> None:
-    """Forge a character from a spec file."""
-    console.print("[bold cyan]ᚺᚨᛗᚱ[/] — The Shape-Skin Engine")
-    console.print(f"[dim]Forging from: {spec_path}[/]")
-
-    start_time = time.time()
+def cmd_build(args: argparse.Namespace) -> int:
+    """Build a character from a spec file."""
+    from hamr.core.builder import build
 
     try:
-        spec = Spec.from_yaml(spec_path)
-    except FileNotFoundError as e:
-        console.print(f"[red]Error:[/] {e}")
-        sys.exit(1)
-    except Exception as e:
-        from hamr.core.errors import SpecValidationError
-        if isinstance(e, SpecValidationError):
-            console.print(f"[red]Spec validation failed:[/]")
-            for err in e.errors:
-                console.print(f"  [red]✗[/] {err}")
-            sys.exit(1)
-        raise
-
-    console.print(f"[green]✓[/] Spec validated: [bold]{spec.character.name}[/]")
-    console.print(f"[dim]  Body: {spec.character.body.build} / {spec.character.body.height_cm}cm[/]")
-    console.print(f"[dim]  Hair: {spec.character.hair.style} / {spec.character.hair.length}[/]")
-    console.print(f"[dim]  Export: {export_format}[/]")
-
-    # Build pipeline — Phase 1 placeholder
-    console.print("\n[yellow]⚠ Build pipeline not yet implemented.[/]")
-    console.print("[dim]Phase 1 foundation is laid. The forge will be built.[/]")
-
-    elapsed = time.time() - start_time
-    console.print(f"\n[dim]Elapsed: {elapsed:.1f}s[/]")
+        output = build(
+            spec_path=args.spec,
+            output_dir=args.out,
+            format=args.format,
+            validate=not args.no_validate,
+        )
+        print(f"✓ Character built: {output}")
+        return 0
+    except SpecValidationError as e:
+        print(f"✗ Validation failed: {e}", file=sys.stderr)
+        return 2
+    except HamrError as e:
+        print(f"✗ Build error: {e}", file=sys.stderr)
+        return 1
 
 
-@main.command()
-@click.argument("path", type=click.Path(exists=True))
-@click.option("--targets", "-t", default="VRCHAT",
-              help="Compliance targets (comma-separated)")
-def inspect(path: str, targets: str) -> None:
-    """Inspect a VRM/GLB file for compliance."""
-    console.print("[bold cyan]ᚺᚨᛗᚱ[/] — Inspect")
-    console.print(f"[dim]Inspecting: {path}[/]")
-    console.print(f"[dim]Targets: {targets}[/]")
-    console.print("\n[yellow]⚠ Inspect not yet implemented.[/]")
+def cmd_validate(args: argparse.Namespace) -> int:
+    """Validate a spec without building."""
+    from hamr.core.builder import validate_only
 
-
-@main.command()
-@click.argument("spec_path", type=click.Path(exists=True))
-def validate(spec_path: str) -> None:
-    """Validate a spec file without building."""
-    try:
-        spec = Spec.from_yaml(spec_path)
-    except Exception as e:
-        console.print(f"[red]Parse error:[/] {e}")
-        sys.exit(1)
-
-    errors = validate_spec(spec.character)
-
+    errors = validate_only(args.spec)
     if errors:
-        console.print(f"[red]✗ {len(errors)} validation errors:[/]")
+        print(f"✗ {len(errors)} validation error(s):")
         for err in errors:
-            console.print(f"  [red]✗[/] {err}")
-        sys.exit(1)
+            print(f"  • {err}")
+        return 1
     else:
-        console.print(f"[green]✓[/] Spec valid: [bold]{spec.character.name}[/]")
+        print("✓ Spec is valid")
+        return 0
 
 
-@main.command()
-def list_presets() -> None:
+def cmd_inspect(args: argparse.Namespace) -> int:
+    """Inspect a VRM/GLB file for compliance."""
+    from hamr.core.builder import inspect
+
+    try:
+        report = inspect(args.path, targets=args.targets)
+        print(json.dumps(report, indent=2, default=str))
+        return 0
+    except HamrError as e:
+        print(f"✗ Inspection error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_list_presets(args: argparse.Namespace) -> int:
     """List available body presets."""
-    from hamr.core.constants import BODY_PRESETS
+    print("Available body presets:")
+    print("-" * 40)
+    for name, proportions in BODY_PRESETS.items():
+        desc = ", ".join(f"{k}={v:.1f}" for k, v in proportions.items())
+        print(f"  {name:20s}  {desc}")
+    return 0
 
-    console.print("[bold cyan]ᚺᚨᛗᚱ[/] — Body Presets\n")
-    for name, values in BODY_PRESETS.items():
-        console.print(f"  [bold]{name}[/]")
-        for key, value in values.items():
-            console.print(f"    {key}: {value}")
-        console.print()
+
+def cmd_version(args: argparse.Namespace) -> int:
+    """Print version information."""
+    from hamr import __version__, __author__
+    print(f"Hamr {__version__} — The Shape-Skin Engine")
+    print(f"By {__author__}")
+    return 0
+
+
+def main() -> int:
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        prog="hamr",
+        description="ᚺᚨᛗᚱ — The Shape-Skin Engine",
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # build
+    build_parser = subparsers.add_parser("build", help="Build a character from spec")
+    build_parser.add_argument("spec", help="Path to YAML spec file")
+    build_parser.add_argument("--out", "-o", default="output/", help="Output directory")
+    build_parser.add_argument("--format", "-f", default="vrm", choices=["vrm", "glb"])
+    build_parser.add_argument("--no-validate", action="store_true", help="Skip validation")
+    build_parser.set_defaults(func=cmd_build)
+
+    # validate
+    validate_parser = subparsers.add_parser("validate", help="Validate spec without building")
+    validate_parser.add_argument("spec", help="Path to YAML spec file")
+    validate_parser.set_defaults(func=cmd_validate)
+
+    # inspect
+    inspect_parser = subparsers.add_parser("inspect", help="Inspect VRM/GLB compliance")
+    inspect_parser.add_argument("path", help="Path to VRM/GLB file")
+    inspect_parser.add_argument("--targets", "-t", nargs="+", default=["VRCHAT"])
+    inspect_parser.set_defaults(func=cmd_inspect)
+
+    # list-presets
+    subparsers.add_parser("list-presets", help="List body presets").set_defaults(func=cmd_list_presets)
+
+    # version
+    subparsers.add_parser("version", help="Print version").set_defaults(func=cmd_version)
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        return 1
+
+    return args.func(args)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

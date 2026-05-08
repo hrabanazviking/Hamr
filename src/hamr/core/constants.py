@@ -152,6 +152,27 @@ BODY_PRESETS = {
         "hip_width": 0.55,
         "leg_length": 0.5,
     },
+    "tall": {
+        "shoulder_width": 0.45,
+        "bust": 0.5,
+        "waist": 0.35,
+        "hip_width": 0.55,
+        "leg_length": 0.65,
+    },
+    "petite": {
+        "shoulder_width": 0.35,
+        "bust": 0.45,
+        "waist": 0.3,
+        "hip_width": 0.5,
+        "leg_length": 0.45,
+    },
+    "muscular": {
+        "shoulder_width": 0.6,
+        "bust": 0.4,
+        "waist": 0.45,
+        "hip_width": 0.5,
+        "leg_length": 0.55,
+    },
 }
 
 # ── VRM Export Constants ──────────────────────────────────────
