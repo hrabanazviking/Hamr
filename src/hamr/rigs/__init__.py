@@ -32,6 +32,18 @@ from hamr.rigs.verify import (
     generate_rig_report,
     verify_bone_list,
 )
+from hamr.rigs.spring_bones import (
+    SpringBoneGroup,
+    SpringBoneCollider,
+    HAIR_SPRING_PRESETS,
+    BREAST_SPRING_PRESETS,
+    CLOTHING_SPRING_PRESETS,
+    DEFAULT_COLLIDERS,
+    configure_hair_spring,
+    configure_breast_spring,
+    configure_clothing_spring,
+    apply_spring_bones,
+)
 from hamr.export.vrm import MB_LAB_BONE_MAP, VRM_REQUIRED_BONES
 from hamr.core.constants import VRM_25_BONE_NAMES
 
@@ -63,4 +75,15 @@ __all__ = [
     "check_naming_conventions_pure",
     "generate_rig_report",
     "cmd_verify_rig",
+    # Spring bones
+    "SpringBoneGroup",
+    "SpringBoneCollider",
+    "HAIR_SPRING_PRESETS",
+    "BREAST_SPRING_PRESETS",
+    "CLOTHING_SPRING_PRESETS",
+    "DEFAULT_COLLIDERS",
+    "configure_hair_spring",
+    "configure_breast_spring",
+    "configure_clothing_spring",
+    "apply_spring_bones",
 ]
