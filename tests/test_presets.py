@@ -345,3 +345,73 @@ class TestPresetCategories:
         for category, names in PRESET_CATEGORIES.items():
             for name in names:
                 assert name in CHARACTER_PRESETS, f"{category} references unknown preset {name}"
+
+
+# ── Bug-fix regression tests (Phase 14 T4) ───────────────────────────────────
+
+class TestPresetOverrideBodyProportions:
+    """Verify that resolve_preset correctly overrides body proportions
+    while preserving other body fields (Phase 13/14 regression)."""
+
+    def test_preset_override_body_proportions(self) -> None:
+        result = resolve_preset("anime_girl_default", {
+            "body": {
+                "proportions": {
+                    "shoulder_width": 0.25,
+                    "bust": 0.40,
+                },
+            },
+        })
+        # Overridden proportion fields
+        assert result["body"]["proportions"]["shoulder_width"] == 0.25
+        assert result["body"]["proportions"]["bust"] == 0.40
+        # Preserved proportion fields from the base preset
+        assert result["body"]["proportions"]["waist"] == 0.30
+        assert result["body"]["proportions"]["hip_width"] == 0.60
+        assert result["body"]["proportions"]["leg_length"] == 0.55
+        # Other body fields preserved
+        assert result["body"]["height_cm"] == 158.0
+        assert result["body"]["build"] == "average"
+
+
+class TestPresetOverrideHairStyle:
+    """Verify that resolve_preset correctly overrides hair style
+    while preserving other hair fields (Phase 13/14 regression)."""
+
+    def test_preset_override_hair_style(self) -> None:
+        result = resolve_preset("anime_girl_mage", {
+            "hair": {"style": "braided"},
+        })
+        # Overridden field
+        assert result["hair"]["style"] == "braided"
+        # Preserved fields from base preset
+        assert result["hair"]["length"] == "very-long"
+        assert result["hair"]["volume"] == 0.85
+        assert result["hair"]["curl_tightness"] == 0.4
+        # Color sub-dict preserved entirely
+        assert result["hair"]["color"]["roots"] == "#8A8A9A"
+        assert result["hair"]["color"]["mid"] == "#B0B0C0"
+        assert result["hair"]["color"]["tips"] == "#D8D8E8"
+
+
+class TestInvalidHeightCreatesDefaultSpec:
+    """Verify that invalid height values are caught by validation and that
+    resolving a preset with an invalid height override still produces a
+    structurally valid spec (Phase 13/14 regression)."""
+
+    def test_invalid_height_creates_default_spec(self) -> None:
+        # Resolve with an out-of-range height override
+        spec = resolve_preset("chibi_cute", {
+            "body": {"height_cm": 50.0},
+        })
+        # The spec should still have all required fields
+        assert "body" in spec
+        assert "face" in spec
+        assert "hair" in spec
+        # The overridden height value is present (even though invalid)
+        assert spec["body"]["height_cm"] == 50.0
+        # Other body fields remain from the base preset
+        assert spec["body"]["build"] == "petite"
+        # Validation should flag the out-of-range height
+        warnings = validate_preset(spec)
+        assert any("height_cm out of range" in w for w in warnings)
