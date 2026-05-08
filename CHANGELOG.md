@@ -5,6 +5,79 @@ All notable changes to Hamr will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-05-08
+
+### Added — Phase 13: Vǫllr Vígríðar (The Plain of Battle — Hardening)
+
+#### T1: Ragnarök Fixes — Bug Squashing & Regression Guards
+- **`hamr/core/validate.py`** — `spec_to_dict()` helper for round-trip spec serialization
+- 4 preset bugs fixed: invalid hex colors, out-of-range values, missing fields
+- 33 regression guards in `test_regression.py` ensuring no Phase 11–12 breakage
+
+#### T2: Procedural Texture Pipeline — Deterministic GPU Textures
+- **`hamr/core/texture_procedural.py`** — `TextureForge` with pure-Python procedural generation
+- Skin detail maps: pore noise, subsurface scattering thickness, micro-normal
+- Iris detail: procedural radial striations, depth gradient
+- Hair gradient: root→mid→tip vertex color generation from `HairSpec.color`
+- Fabric normal maps: weave pattern approximation for clothing
+- All generation deterministic — same spec → same pixel output
+
+#### T3: VRM 1.0 Validator — glTF & Bone Compliance
+- **`hamr/export/vrm_validator.py`** — `VRMValidator` for VRM 1.0 compliance checking
+- Binary glTF parsing: magic number, chunk structure, buffer integrity
+- Bone coverage verification: 25/25 humanoid bone mapping
+- Expression count check: ≥6 VRM 1.0 expressions required
+- Spring bone group validation and collider group inspection
+- JSON report output for CI integration
+
+#### T4: Animation Preset Clips — VRM Animation Bindings
+- **`hamr/export/animation_clips.py`** — `AnimationForge` for VRM 1.0 animation clips
+- Idle breathe cycle: subtle chest expansion, shoulder micro-movement
+- Weight shift: hip sway, spine curve, foot pressure
+- Look around: head rotation, eye target tracking
+- Walk cycle reference: bone-keyed locomotion from heel-strike to toe-off
+- All clips exported as VRM 1.0 animation extensions
+
+#### T5: Documentation Generation — CLI Reference & Architecture Docs
+- **`hamr/docs/generate.py`** — `DocGenerator` auto-generates project documentation
+- CLI reference: every command, flag, and option documented from `cli.py`
+- Architecture diagram: module dependency graph rendered from imports
+- Preset guide: all 6 presets described with example specs
+- Auto-README: project overview, installation, usage sections
+
+#### T6: Accessibility & CLI Hardening — UX Polish
+- **`hamr/core/a11y.py`** — Accessibility and UX hardening module
+- `--no-color` flag: strips ANSI/Rich formatting for piped output
+- `--quiet` flag: suppresses all non-error output
+- `--json` flag: machine-readable JSON output for all commands
+- Actionable error suggestions: every `SpecValidationError` includes fix hints
+- Exit codes normalized: 0=success, 1=warning, 2=error, 3=env-missing
+
+#### T7: GPU Profile Tiers — Adaptive Quality & Device Detection
+- **`hamr/core/gpu_profiles.py`** — `GPUProfiler` for adaptive quality selection
+- Device tiers: `pi5` (512MB VRAM, low-res), `desktop` (discrete GPU, medium), `cloud` (unlimited, high)
+- Auto-detection: probes `/sys`, `lspci`, and `glxinfo` for GPU capability
+- Spec compatibility validation: warns when preset exceeds device capability
+- Quality knobs: texture resolution, hair density, animation clip count
+
+### Tests Added (Phase 13)
+- `tests/test_regression.py` — 284 lines, 33 Phase 13-specific regression guards
+- `tests/test_texture_procedural.py` — 662 lines, procedural texture generation tests
+- `tests/test_vrm_validator.py` — 848 lines, VRM 1.0 compliance validation tests
+- `tests/test_animation_clips.py` — 606 lines, animation clip generation tests
+- `tests/test_docs_generate.py` — 311 lines, documentation generation tests
+- `tests/test_a11y.py` — 489 lines, accessibility and CLI hardening tests
+- `tests/test_gpu_profiles.py` — 492 lines, GPU profile tier tests
+- `tests/test_perf_gate.py` — 520 lines, performance gate validation tests
+- `tests/test_pipeline_integrate.py` — 522 lines, pipeline integration tests
+- `tests/test_collision.py` — 479 lines, collision mesh generation tests
+
+**Total: 1569 tests passing** (7 pre-existing preset validation failures remain)
+
+### Changed
+- `src/hamr/__init__.py` — Version bumped to 0.6.0
+- `pyproject.toml` — Version bumped to 0.6.0
+
 ## [0.5.0] - 2026-05-08
 
 ### Added — Phase 12: Yggdrasil (The World Tree — All Branches Bound)
