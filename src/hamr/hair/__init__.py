@@ -5,7 +5,8 @@ Hair is the crown of the avatar. The Hair Forge takes a HairSpec
 and produces the configuration that the Blender build script applies:
 material assignments, texture tinting targets, and spring bone physics.
 
-Phase 7: Complete. The forge breathes.
+Phase 7:  Complete. The forge breathes.
+Phase 11: Hair mesh generation added (mesh.py) — guide curves → Bezier → mesh pipeline.
 """
 
 from __future__ import annotations
@@ -226,3 +227,46 @@ def list_hair_presets() -> dict[str, dict]:
 def list_gradient_presets() -> dict[str, dict[str, str]]:
     """List all available hair color gradient presets."""
     return dict(HAIR_GRADIENT_PRESETS)
+
+
+# ── Phase 11: Hair mesh generation re-exports ────────────────────────────────
+# Import pure-Python geometry functions and Blender-dependent classes from
+# the mesh sub-module.  This keeps the config layer (above) intact while
+# exposing the mesh layer to consumers.
+
+from hamr.hair.mesh import (  # noqa: E402
+    HAIR_MESH_STYLES,
+    HAIR_LENGTH_SCALE,
+    GuideCurve,
+    HairMeshResult,
+    BLENDER_AVAILABLE,
+    generate_guide_curves,
+    compute_strand_count,
+    interpolate_curve_points,
+    apply_wave_to_curve,
+    HairMeshGenerator,
+    create_hair_material,
+)
+
+__all__ = [
+    # Config layer (Phase 7)
+    "HAIR_STYLE_TEMPLATES",
+    "HAIR_LENGTH_TABLE",
+    "HAIR_GRADIENT_PRESETS",
+    "HairBuildResult",
+    "resolve_hair",
+    "list_hair_presets",
+    "list_gradient_presets",
+    # Mesh layer (Phase 11)
+    "HAIR_MESH_STYLES",
+    "HAIR_LENGTH_SCALE",
+    "GuideCurve",
+    "HairMeshResult",
+    "BLENDER_AVAILABLE",
+    "generate_guide_curves",
+    "compute_strand_count",
+    "interpolate_curve_points",
+    "apply_wave_to_curve",
+    "HairMeshGenerator",
+    "create_hair_material",
+]
