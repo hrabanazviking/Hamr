@@ -11,3 +11,10 @@ output/
 .mypy_cache/
 *.blend1
 *.blend2
+.coverage
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
