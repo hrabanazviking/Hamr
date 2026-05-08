@@ -309,3 +309,13 @@ MIT License — see [LICENSE](LICENSE) for details.
 ᚺᚨᛗᚱ — *hamr* — the shape you wear
 
 </div>
+
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/image-23-RuneForgeAI.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/image-23-RuneForgeAI.jpg)
+
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/IMG_0407.jpeg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/IMG_0407.jpeg)
+
+---
