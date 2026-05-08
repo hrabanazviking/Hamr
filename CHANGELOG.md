@@ -5,6 +5,81 @@ All notable changes to Hamr will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-05-08
+
+### Added — Phase 12: Yggdrasil (The World Tree — All Branches Bound)
+
+#### T1: Pipeline Integration Layer — Stage Planning & Pre-flight Validation
+- **`hamr/core/pipeline.py`** — Build pipeline restructured into 14 explicit numbered stages (Stages 0–13)
+- Pre-flight validation: checks spec, environment, and module availability before building
+- `BuildResult` tracking: per-stage timing, success/failure, and diagnostic reporting
+- Stage skip capability: `--skip-stages hair,clothing` for targeted debugging
+- `PerfBudget` integration at pipeline start and end
+
+#### T2: Build Avatar Integration — All Phase 11 Modules Wired
+- **`hamr/scripts/build_avatar.py`** — Unified pipeline calling all Phase 11 modules in sequence
+- Stage 3: `stub_bones.create_missing_bones()` — 25/25 humanoid bones
+- Stage 4: `HairForge.generate()` — 5 hair styles via Bezier→mesh pipeline
+- Stage 5: `ClothingForge.generate()` — 6 clothing patterns, shrinkwrap fit
+- Stage 6: `WeightPaintEngine.paint_smooth()` — smooth deformations, quality score check
+- Stage 8: `create_spring_bones()` — hair physics with collider groups
+- Stage 10: `FirstPersonAnnotator` — VRM visibility annotations per render subset
+- `PresetLoader` wired into `BuildPipeline.build()` — `hamr build --preset <name>` flows end-to-end
+
+#### T3: CLI Enhancement — Commands for Every Module
+- `hamr build --preset <name>` — full pipeline with preset
+- `hamr build --spec <file>` — full pipeline with custom spec
+- `hamr verify-rig <vrm>` — rig compliance check with `--json` and `--quiet` flags
+- `hamr check-env` — environment detection with Phase 11+ module awareness
+- `hamr list-presets --verbose` — detailed preset information
+- `--json` and `--verbose` output flags for all commands
+- `--skip-stages` flag for build (AD-12.1)
+
+#### T4: Anime Materials — Eevee-Optimized Shader Pipeline
+- **`hamr/materials/forge.py`** — `MaterialForge` for VRM-compatible Eevee rendering
+- `create_skin_material()` — SSS approximation via Principled BSDF subsurface (no Cycles)
+- `create_eye_material()` — cornea refraction (alpha blend), iris HSV tint, fake SSS sclera
+- `create_hair_material()` — anisotropic highlight via Clearcoat + Sheen, root→tip vertex color gradient
+- `create_clothing_material()` — roughness/metallic from spec, fabric normal approximation
+- `assign_materials()` — automatic scene-wide assignment by mesh classification
+
+#### T5: Facial Expressions — Shape Key Discovery & VRM Binding
+- **`hamr/face/expressions.py`** — `ExpressionDiscovery` for automatic shape key categorization
+- `discover_shape_keys()` — scans mesh objects for MB-Lab and TurboSquid shape keys
+- `bind_expressions()` — creates VRM 1.0 expression preset bindings (≥6: happy, angry, sad, surprised, neutral, blink)
+- Fallback to `MB_LAB_EXPRESSION_MAP` and `TURBOSQUID_EXPRESSION_MAP` when discovery misses
+- Discovery-first approach (AD-12.3): resilient to base-mesh variations, no hardcoding
+
+#### T6: Collision Mesh Generation — Spring Bone Colliders
+- **`hamr/rigs/colliders.py`** — `CollisionForge` for deterministic collision geometry
+- `create_head_collider()` — spherical collider from head bone position + head mesh extent
+- `create_body_capsule_colliders()` — capsules from spine bone chain + body cross-sections
+- `register_collider_groups()` — links colliders to spring bone configuration for VRM 1.0
+- Deterministic generation: same body → same colliders, no manual placement (AD-12.4)
+
+#### T7: Performance Gate — Pre-flight Budget Check
+- Pre-flight estimation: build time, memory, triangle count before Stage 0
+- Optimization recommendations when over budget limits
+- Pipeline configuration via `CharacterSpec.pipeline` section (AD-12.6)
+- `skip_stages`, `perf_budget`, `spring_bones`, `collision` all configurable from YAML
+
+### Changed
+- `src/hamr/scripts/build_avatar.py` — restructured into explicit numbered stages with per-stage timing and error handling
+- `src/hamr/core/pipeline.py` — `PresetLoader` integration with deep-merge user overrides
+- `src/hamr/cli.py` — new commands and flags: `--json`, `--verbose`, `--skip-stages`
+- `src/hamr/core/constants.py` — added material type constants, expression category names, pipeline stage names
+
+### Tests Added (Phase 12)
+- Pipeline stage execution and stage skip tests
+- Material creation tests (skin, eye, hair, clothing)
+- Expression discovery and binding tests
+- Collision mesh generation tests
+- CLI integration tests for all commands
+- Performance gate and budget estimation tests
+- End-to-end pipeline test suite (`tests/test_e2e_pipeline.py`, marked `e2e` + `blender`)
+
+**Total: 1159 tests passing**
+
 ## [0.4.0] - 2026-05-08
 
 ### Added — Phase 11: Alvíssmál (All-Wise, All-Formed)
