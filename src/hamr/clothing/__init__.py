@@ -5,7 +5,9 @@ The Clothing Forge takes ClothingSpec definitions and produces
 material assignments, mesh layer configurations, and tinting
 targets that the Blender build script applies.
 
-Phase 7: Complete. The forge breathes.
+Phase 7:  Complete. The forge breathes.
+Phase 11: Clothing mesh generation added (mesh.py) — pattern resolve →
+           region select → duplicate → offset → shrinkwrap → material → weight transfer.
 """
 
 from __future__ import annotations
@@ -198,3 +200,46 @@ def list_clothing_types() -> dict[str, dict]:
 def list_material_categories() -> dict[str, dict]:
     """List all available material categories with their properties."""
     return dict(MATERIAL_CATEGORIES)
+
+
+# ── Phase 11: Clothing mesh generation re-exports ──────────────────────────────
+# Import pure-Python pattern functions and Blender-dependent classes from
+# the mesh sub-module.  This keeps the config layer (above) intact while
+# exposing the mesh layer to consumers.
+
+from hamr.clothing.mesh import (  # noqa: E402
+    CLOTHING_PATTERNS,
+    BODY_REGION_VERTEX_GROUPS,
+    UV_REGION_MAP,
+    _REQUIRED_PATTERN_KEYS,
+    ClothingMeshResult,
+    ClothingMeshGenerator,
+    ClothingForge,
+    BLENDER_AVAILABLE,
+    resolve_clothing_pattern,
+    compute_clothing_regions,
+    estimate_triangle_count,
+    classify_material_type,
+)
+
+__all__ = [
+    # Config layer (Phase 7)
+    "CLOTH_TYPE_TEMPLATES",
+    "MATERIAL_CATEGORIES",
+    "ClothingBuildResult",
+    "resolve_clothing",
+    "list_clothing_types",
+    "list_material_categories",
+    # Mesh layer (Phase 11)
+    "CLOTHING_PATTERNS",
+    "BODY_REGION_VERTEX_GROUPS",
+    "UV_REGION_MAP",
+    "ClothingMeshResult",
+    "ClothingMeshGenerator",
+    "ClothingForge",
+    "BLENDER_AVAILABLE",
+    "resolve_clothing_pattern",
+    "compute_clothing_regions",
+    "estimate_triangle_count",
+    "classify_material_type",
+]
