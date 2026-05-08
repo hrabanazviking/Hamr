@@ -10,7 +10,7 @@ Phase 11 (T7): The forge breathes presets.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from copy import deepcopy
 
 from hamr.core.models import (
@@ -26,6 +26,32 @@ from hamr.core.models import (
     PhysicsSpec,
     ExportSpec,
 )
+
+
+# ── Spec-to-Dict Helper ─────────────────────────────────────────────────────
+
+def spec_to_dict(spec: dict | CharacterSpec) -> dict:
+    """Recursively convert a CharacterSpec (or nested dataclass) to a plain dict.
+
+    Accepts either a plain dict (returned as-is) or a CharacterSpec
+    dataclass instance (converted via ``asdict()`` or ``.to_dict()``).
+
+    This normalization layer lets ``validate_preset()`` and downstream
+    consumers always work on plain dicts regardless of whether the
+    caller provides a CharacterSpec or a raw spec dict.
+
+    Args:
+        spec: A CharacterSpec dataclass instance or a plain dict.
+
+    Returns:
+        A plain dict suitable for dict-style access and mutation.
+    """
+    if isinstance(spec, dict):
+        return spec
+    if hasattr(spec, "to_dict"):
+        return spec.to_dict()
+    # Fallback: dataclass → asdict
+    return asdict(spec)
 
 
 # ── Character Presets ──────────────────────────────────────────────────────────
@@ -622,8 +648,12 @@ _ALLOWED_STRINGS: dict[str, set[str]] = {
 }
 
 
-def validate_preset(spec: dict) -> list[str]:
-    """Return a list of validation warnings for a spec dict.
+def validate_preset(spec: dict | CharacterSpec) -> list[str]:
+    """Return a list of validation warnings for a spec dict or CharacterSpec.
+
+    Accepts either a plain dict or a CharacterSpec dataclass instance.
+    If a CharacterSpec is provided, it is converted to a plain dict via
+    :func:`spec_to_dict` before validation proceeds.
 
     Warnings include:
       - Missing required top-level keys
@@ -631,6 +661,7 @@ def validate_preset(spec: dict) -> list[str]:
       - Numeric values outside valid ranges
       - Malformed hex color strings
     """
+    spec = spec_to_dict(spec)
     warnings: list[str] = []
 
     # ── Missing required keys ──────────

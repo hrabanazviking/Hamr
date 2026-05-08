@@ -15,6 +15,7 @@ from hamr.core.presets import (
     deep_merge,
     sanitize_preset,
     validate_preset,
+    spec_to_dict,
 )
 
 
@@ -248,67 +249,67 @@ class TestValidatePreset:
         assert any("Missing required key: hair" in w for w in warnings)
 
     def test_height_out_of_range(self) -> None:
-        spec = get_preset("anime_girl_default").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_girl_default"]["spec"])
         spec["body"]["height_cm"] = 50.0
         warnings = validate_preset(spec)
         assert any("height_cm out of range" in w for w in warnings)
 
     def test_volume_out_of_range(self) -> None:
-        spec = get_preset("anime_girl_default").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_girl_default"]["spec"])
         spec["hair"]["volume"] = 2.5
         warnings = validate_preset(spec)
         assert any("volume out of range" in w for w in warnings)
 
     def test_invalid_build_string(self) -> None:
-        spec = get_preset("anime_boy_default").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_boy_default"]["spec"])
         spec["body"]["build"] = "super-muscular-nope"
         warnings = validate_preset(spec)
         assert any("body.build unknown" in w for w in warnings)
 
     def test_invalid_hair_style(self) -> None:
-        spec = get_preset("anime_girl_warrior").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_girl_warrior"]["spec"])
         spec["hair"]["style"] = "mohawk-faux"
         warnings = validate_preset(spec)
         assert any("hair.style unknown" in w for w in warnings)
 
     def test_invalid_jaw(self) -> None:
-        spec = get_preset("chibi_cute").spec
+        spec = deepcopy(CHARACTER_PRESETS["chibi_cute"]["spec"])
         spec["face"]["jaw"] = "hexagonal"
         warnings = validate_preset(spec)
         assert any("face.jaw unknown" in w for w in warnings)
 
     def test_eye_size_out_of_range(self) -> None:
-        spec = get_preset("chibi_cute").spec
+        spec = deepcopy(CHARACTER_PRESETS["chibi_cute"]["spec"])
         spec["face"]["eyes"]["size"] = 5.0
         warnings = validate_preset(spec)
         assert any("eyes.size out of range" in w for w in warnings)
 
     def test_invalid_hex_color(self) -> None:
-        spec = get_preset("anime_girl_mage").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_girl_mage"]["spec"])
         spec["face"]["eyes"]["iris_hex"] = "not-a-hex"
         warnings = validate_preset(spec)
         assert any("iris_hex invalid hex" in w for w in warnings)
 
     def test_proportion_out_of_range(self) -> None:
-        spec = get_preset("anime_boy_default").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_boy_default"]["spec"])
         spec["body"]["proportions"]["shoulder_width"] = 2.0
         warnings = validate_preset(spec)
         assert any("shoulder_width out of range" in w for w in warnings)
 
     def test_shell_layers_out_of_range(self) -> None:
-        spec = get_preset("anime_boy_warrior").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_boy_warrior"]["spec"])
         spec["hair"]["shell_layers"] = 50
         warnings = validate_preset(spec)
         assert any("shell_layers out of range" in w for w in warnings)
 
     def test_hair_color_invalid_hex(self) -> None:
-        spec = get_preset("anime_girl_default").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_girl_default"]["spec"])
         spec["hair"]["color"]["roots"] = "ZZZZZZ"
         warnings = validate_preset(spec)
         assert any("hair.color.roots invalid hex" in w for w in warnings)
 
     def test_tan_level_out_of_range(self) -> None:
-        spec = get_preset("anime_girl_default").spec
+        spec = deepcopy(CHARACTER_PRESETS["anime_girl_default"]["spec"])
         spec["body"]["skin"]["tan_level"] = 5.0
         warnings = validate_preset(spec)
         assert any("tan_level out of range" in w for w in warnings)
