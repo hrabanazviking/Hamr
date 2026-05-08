@@ -36,6 +36,16 @@ from hamr.core.texture_procedural import (
     ProceduralTexturePipeline,
     PILLOW_AVAILABLE,
 )
+from hamr.core.gpu_profiles import (
+    GPUProfile,
+    GPU_PROFILES,
+    get_profile,
+    list_profiles,
+    auto_detect_profile,
+    profile_from_spec,
+    validate_profile_compatibility,
+    profile_to_budget,
+)
 
 __all__ = [
     "Spec",
@@ -70,4 +80,12 @@ __all__ = [
     "ProceduralTexture",
     "ProceduralTexturePipeline",
     "PILLOW_AVAILABLE",
+    "GPUProfile",
+    "GPU_PROFILES",
+    "get_profile",
+    "list_profiles",
+    "auto_detect_profile",
+    "profile_from_spec",
+    "validate_profile_compatibility",
+    "profile_to_budget",
 ]
