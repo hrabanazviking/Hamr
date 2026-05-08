@@ -11,9 +11,9 @@ Modules:
     blender_bridge — Headless Blender subprocess bridge
     body        — Body Forge: presets, proportion mapping
     export      — Export Forge: VRM 1.0 and GLB export
-    face        — Face Forge: expression mapping (Phase 3)
-    hair        — Hair Forge: procedural hair (Phase 3)
-    clothing    — Clothing Forge: outfits (Phase 3)
+    face        — Face Forge: shape keys, expression mapping, eye/nose/lip sliders
+    hair        — Hair Forge: procedural hair styles, color gradients, physics
+    clothing    — Clothing Forge: outfit layers, materials, tinting
     rigs        — Rig mapping reference
 """
 
@@ -29,6 +29,9 @@ from hamr.core.errors import (
     HamrError, SpecValidationError, BuildError, ExportError,
 )
 from hamr.core.pipeline import BuildPipeline, PipelineResult
+from hamr.hair import resolve_hair, list_hair_presets, list_gradient_presets
+from hamr.face import resolve_face, list_jaw_presets, list_eye_shape_presets
+from hamr.clothing import resolve_clothing, list_clothing_types, list_material_categories
 
 __all__ = [
     # Core
@@ -39,4 +42,10 @@ __all__ = [
     "HamrError", "SpecValidationError", "BuildError", "ExportError",
     # Pipeline
     "BuildPipeline", "PipelineResult",
+    # Hair Forge
+    "resolve_hair", "list_hair_presets", "list_gradient_presets",
+    # Face Forge
+    "resolve_face", "list_jaw_presets", "list_eye_shape_presets",
+    # Clothing Forge
+    "resolve_clothing", "list_clothing_types", "list_material_categories",
 ]

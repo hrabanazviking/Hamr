@@ -309,8 +309,9 @@ def main() -> int:
             return 3
 
     # ── Step 3: Apply spec transformations ────────────────────────────────
+    forge_config = spec_data.pop("forge_config", None)
     try:
-        _apply_spec(bpy, spec_data)
+        _apply_spec(bpy, spec_data, forge_config=forge_config)
     except Exception as exc:
         logger.error(f"Spec application failed: {exc}")
         import traceback
@@ -414,10 +415,16 @@ def _generate_mblab_base(bpy) -> None:
 # Spec Application
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _apply_spec(bpy, spec: dict) -> None:
+def _apply_spec(bpy, spec: dict, forge_config: dict | None = None) -> None:
     """Apply the Hamr CharacterSpec to the current Blender scene."""
     _apply_colors(bpy, spec)
     _apply_height(bpy, spec)
+
+    # Apply forge-resolved parameters (hair, face, clothing)
+    if forge_config:
+        _apply_face_from_forge(bpy, forge_config)
+        _apply_hair_from_forge(bpy, forge_config)
+        _apply_clothing_from_forge(bpy, forge_config)
 
     # VRM humanoid mapping for non-VRM bases
     _apply_vrm_humanoid(bpy, spec)
@@ -555,6 +562,131 @@ def _apply_colors(bpy, spec: dict) -> None:
             if _classify_material(mat.name) == "hair":
                 if _tint_texture(bpy, mat.name, roots_hsv, 0.6):
                     logger.info(f"Hair tinted: {mat.name}")
+
+
+def _apply_face_from_forge(bpy, forge_config: dict) -> None:
+    """Apply face shape keys from the Face Forge resolution."""
+    face_config = forge_config.get("face")
+    if not face_config:
+        return
+
+    shape_keys = face_config.get("shape_keys", {})
+    if not shape_keys:
+        return
+
+    applied = 0
+    for mesh_obj in bpy.data.objects:
+        if mesh_obj.type != "MESH" or not mesh_obj.data.shape_keys:
+            continue
+        key_blocks = mesh_obj.data.shape_keys.key_blocks
+        for sk_name, weight in shape_keys.items():
+            if sk_name in key_blocks:
+                key_blocks[sk_name].value = float(weight)
+                applied += 1
+
+    if applied > 0:
+        logger.info(f"Face forge: applied {applied} shape key values")
+
+    # Eye size — scale eye bones
+    eye_size = face_config.get("eye_size_factor", 1.0)
+    if abs(eye_size - 1.0) > 0.01:
+        for obj in bpy.data.objects:
+            if obj.type == "ARMATURE":
+                for bone in obj.data.bones:
+                    if bone.name in ("eye.L", "L_Eye", "Eye_L", "LeftEye",
+                                     "eye.R", "R_Eye", "Eye_R", "RightEye"):
+                        bone_obj = obj.pose.bones.get(bone.name)
+                        if bone_obj:
+                            bone_obj.scale = (eye_size, eye_size, eye_size)
+                break
+
+    # Lip fullness — set lip shape keys if present
+    lip_fullness = face_config.get("lip_fullness", 0.5)
+    for mesh_obj in bpy.data.objects:
+        if mesh_obj.type != "MESH" or not mesh_obj.data.shape_keys:
+            continue
+        key_blocks = mesh_obj.data.shape_keys.key_blocks
+        for key_name in ("lip_full", "lips_full", "lip_thick"):
+            if key_name in key_blocks:
+                key_blocks[key_name].value = lip_fullness
+                logger.info(f"Lip fullness set: {lip_fullness:.2f}")
+
+
+def _apply_clothing_from_forge(bpy, forge_config: dict) -> None:
+    """Apply clothing material adjustments from the Clothing Forge resolution."""
+    clothing_layers = forge_config.get("clothing", [])
+    if not clothing_layers:
+        return
+
+    applied = 0
+    for layer in clothing_layers:
+        mesh_pattern = layer.get("mesh_pattern", "")
+        mat_category = layer.get("material_category", "fabric")
+        mat_props = layer.get("material_properties", {})
+        primary_hsv = layer.get("primary_hsv")
+        accent_hsv = layer.get("accent_hsv")
+
+        if not mesh_pattern:
+            continue
+
+        # Match materials by pattern
+        import re
+        pattern = re.compile("|".join(mesh_pattern.split("|")), re.IGNORECASE)
+
+        for mat in bpy.data.materials:
+            if pattern.search(mat.name):
+                # Apply material properties
+                if mat.use_nodes and mat.node_tree:
+                    for node in mat.node_tree.nodes:
+                        if node.type == "BSDF_PRINCIPLED":
+                            if "Roughness" in node.inputs:
+                                roughness = mat_props.get("roughness", 0.7)
+                                node.inputs["Roughness"].default_value = roughness
+                            if "Metallic" in node.inputs:
+                                metallic = mat_props.get("metallic", 0.0)
+                                node.inputs["Metallic"].default_value = metallic
+
+                # Apply primary color tinting
+                if primary_hsv and len(primary_hsv) >= 3:
+                    hsv_tuple = tuple(primary_hsv[:3])
+                    if _tint_texture(bpy, mat.name, hsv_tuple, 0.5):
+                        applied += 1
+
+    if applied > 0:
+        logger.info(f"Clothing forge: tinted {applied} materials")
+
+
+def _apply_hair_from_forge(bpy, forge_config: dict) -> None:
+    """Apply hair parameters from the Hair Forge resolution."""
+    hair_config = forge_config.get("hair")
+    if not hair_config:
+        return
+
+    style_template = hair_config.get("style_template", {})
+    curl = hair_config.get("curl_tightness", 0.0)
+    volume = hair_config.get("volume", 0.7)
+    physics = hair_config.get("physics_config", {})
+
+    # Apply curl tightness and volume to shape keys
+    applied = 0
+    for mesh_obj in bpy.data.objects:
+        if mesh_obj.type != "MESH" or not mesh_obj.data.shape_keys:
+            continue
+        key_blocks = mesh_obj.data.shape_keys.key_blocks
+        if any(kw in mesh_obj.name.lower() for kw in ("hair", "strand")):
+            # Curl keys
+            for key_name in ("curl", "curl_tight", "Curl", "Curly"):
+                if key_name in key_blocks:
+                    key_blocks[key_name].value = curl
+                    applied += 1
+            # Volume keys
+            for key_name in ("volume", "hair_volume", "Volume", "Fullness"):
+                if key_name in key_blocks:
+                    key_blocks[key_name].value = volume
+                    applied += 1
+
+    if applied > 0:
+        logger.info(f"Hair forge: applied {applied} shape key values")
 
 
 def _apply_height(bpy, spec: dict) -> None:

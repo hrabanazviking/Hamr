@@ -1,14 +1,16 @@
 """
-Builder — The forge pipeline. Spec → Character → VRM.
+Builder — The forge pipeline. Spec → Resolve → Character → VRM.
 
 The builder orchestrates every forge in sequence:
-1. Validate spec
-2. Set up Blender scene
-3. Import base mesh
-4. Apply body proportions
-5. Apply textures
-6. Set up VRM metadata & bone mapping
-7. Export VRM
+1. Parse & validate spec
+2. Resolve through forges (hair, face, clothing)
+3. Set up Blender scene
+4. Import base mesh
+5. Apply body proportions
+6. Apply textures & colors
+7. Apply hair, face, clothing
+8. Set up VRM metadata & bone mapping
+9. Export VRM
 
 It never opens a GUI. It speaks to Blender through
 the command line, like a völva speaking to the beyond.
@@ -28,6 +30,56 @@ from hamr.core.validate import validate_spec
 from hamr.core.errors import HamrError, SpecValidationError, BuildError, ExportError
 
 logger = logging.getLogger("hamr.builder")
+
+
+def _resolve_forges(char: CharacterSpec) -> dict[str, Any]:
+    """
+    Run all three forges and produce a resolved build config.
+
+    The forges transform declarative specs into concrete parameters
+    that the Blender build script can apply directly.
+
+    Returns:
+        Dict with keys 'hair', 'face', 'clothing', each containing
+        the forge's resolved build result as a plain dict.
+    """
+    from hamr.hair import resolve_hair
+    from hamr.face import resolve_face
+    from hamr.clothing import resolve_clothing
+
+    config: dict[str, Any] = {}
+
+    # Hair Forge
+    try:
+        hair_result = resolve_hair(char.hair)
+        config["hair"] = hair_result.to_dict()
+        logger.info(f"💇 Hair resolved: style={char.hair.style}, length={char.hair.length}")
+    except Exception as e:
+        logger.warning(f"Hair forge failed, using defaults: {e}")
+        config["hair"] = None
+
+    # Face Forge
+    try:
+        face_result = resolve_face(char.face)
+        config["face"] = face_result.to_dict()
+        logger.info(f"👁 Face resolved: jaw={char.face.jaw}, eyes={char.face.eyes.shape}")
+    except Exception as e:
+        logger.warning(f"Face forge failed, using defaults: {e}")
+        config["face"] = None
+
+    # Clothing Forge — resolve each clothing layer
+    try:
+        clothing_results = []
+        for clothing_spec in char.clothing:
+            clothing_result = resolve_clothing(clothing_spec)
+            clothing_results.append(clothing_result.to_dict())
+        config["clothing"] = clothing_results
+        logger.info(f"👕 Clothing resolved: {len(clothing_results)} layers")
+    except Exception as e:
+        logger.warning(f"Clothing forge failed: {e}")
+        config["clothing"] = []
+
+    return config
 
 
 def build(
@@ -89,11 +141,17 @@ def build(
     logger.info(f"   Skin: {char.body.skin.base_hex}")
     logger.info(f"   Output: {output_file}")
 
-    # 4. Build via Blender bridge
+    # 4. Resolve through forges
+    logger.info("🔥 Resolving through forges...")
+    forge_config = _resolve_forges(char)
+
+    # 5. Build via Blender bridge
     from hamr.blender_bridge.runner import run_blender_script
 
     # Prepare spec as JSON for the Blender script
     spec_dict = spec.to_dict()
+    # Inject forge-resolved config so Blender script has concrete parameters
+    spec_dict["forge_config"] = forge_config
     spec_json = json.dumps(spec_dict)
     spec_temp = output_dir / f".hamr_{safe_name}_spec.json"
     spec_temp.write_text(spec_json)

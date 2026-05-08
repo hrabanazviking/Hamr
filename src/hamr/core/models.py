@@ -8,7 +8,35 @@ The spec IS the character.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
+from enum import Enum
 from typing import Optional
+
+
+class HairStyle(str, Enum):
+    """Available hair style presets."""
+    WILD_CURLY = "wild-curly"
+    STRAIGHT = "straight"
+    WAVY = "wavy"
+    BRAIDED = "braided"
+    BUN = "bun"
+    PONYTAIL = "ponytail"
+
+
+class HairLength(str, Enum):
+    """Available hair length presets."""
+    SHORT = "short"
+    MEDIUM = "medium"
+    SHOULDER = "shoulder"
+    SHOULDER_PLUS = "shoulder-plus"
+    LONG = "long"
+    VERY_LONG = "very-long"
+
+
+class ExportFormat(str, Enum):
+    """Available export formats."""
+    VRM1 = "vrm1"
+    GLB = "glb"
+    BLEND = "blend"
 
 
 @dataclass
