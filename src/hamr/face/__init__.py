@@ -178,3 +178,15 @@ def list_eye_shape_presets() -> list[str]:
 def list_expression_presets() -> dict[str, dict[str, float]]:
     """List available default expression presets."""
     return dict(DEFAULT_EXPRESSION_MAP)
+
+
+# ── Expression Blend Shape Binding (Phase 12 T5) ────────────────────────────
+from hamr.face.expressions import (  # noqa: E402
+    VRM_EXPRESSIONS,
+    VRM_EXPRESSION_COUNT,
+    SHAPE_KEY_ALIASES,
+    ExpressionBinding,
+    ExpressionSet,
+    ExpressionBinder,
+    build_expression_set,
+)
