@@ -1,3 +1,9 @@
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg)
+
+---
+
 <div align="center">
 
 # ᚺᚨᛗᚱ Hamr
@@ -17,6 +23,10 @@ Linux-native · Headless-first · Agent-orchestrated · VRM 1.0
 
 ---
 
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/24224709-e889-4556-ac86-41352b917c35.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/24224709-e889-4556-ac86-41352b917c35.jpg)
+
+---
+
 **Hamr** (Old Norse: *hamr* — the shape-skin, the second body) is the open-source
 alternative to VRoid Studio. It creates parametric 3D anime characters headlessly,
 driven by YAML specs and agent commands, and exports VRM 1.0 avatars ready for
@@ -25,6 +35,10 @@ VRChat, Resonite, and any VRM-compatible platform.
 No GUI. No Windows dependency. No closed-source lock-in.
 
 *Every vertex, every slider, every algorithm is yours.*
+
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg)
 
 ---
 
@@ -61,6 +75,12 @@ hamr list-presets
 # Inspect a VRM file
 hamr inspect output/avatar.vrm
 ```
+
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/8da3a599-f9da-4728-8545-eaa74b4e302a.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/8da3a599-f9da-4728-8545-eaa74b4e302a.jpg)
+
+---
 
 ## 📝 Character Spec
 
@@ -162,6 +182,12 @@ export:
   license: CC-BY-4.0
 ```
 
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/88043fbd-55ab-4b1d-8b08-cbffd127d5f3.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/88043fbd-55ab-4b1d-8b08-cbffd127d5f3.jpg)
+
+---
+
 ## 🏗️ Architecture
 
 Hamr is organized as **six forges** around a central spec:
@@ -207,6 +233,12 @@ Hamr is organized as **six forges** around a central spec:
 | `face/` | Detailed facial controls (Phase 7) |
 | `clothing/` | Parametric outfits (Phase 7) |
 
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/e7f18ecb-1916-4b15-be64-a7351fec37ee.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/e7f18ecb-1916-4b15-be64-a7351fec37ee.jpg)
+
+---
+
 ## 🛡️ Design Lessons (from Seiðr-Smiðja)
 
 Hamr incorporates hard-won lessons from building Seiðr-Smiðja:
@@ -222,6 +254,12 @@ Hamr incorporates hard-won lessons from building Seiðr-Smiðja:
 | Allow non-humanoid | D-017 | Safety net for non-standard rigs |
 | Canonical bone API | D-018 | Use `human_bone_name_to_human_bone()` |
 | Lowercase enums | D-019 | `"bone"` not `"BONE"` in VRM dict |
+
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/c429f4e8-63a9-4bc1-b2d4-b80a4f4acbfb.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/c429f4e8-63a9-4bc1-b2d4-b80a4f4acbfb.jpg)
+
+---
 
 ## 🔧 Development
 
@@ -245,6 +283,12 @@ ruff check src/hamr/
 # Build docs
 cd docs/
 ```
+
+---
+
+![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/25a43eff-a420-4c0b-9d54-5289d957b2ab.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/25a43eff-a420-4c0b-9d54-5289d957b2ab.jpg)
+
+---
 
 ## 📜 License
 
