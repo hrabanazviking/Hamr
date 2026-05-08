@@ -1,0 +1,87 @@
+# =============================================================================
+# Hamr Example Spec — Runa Gridweaver
+# =============================================================================
+# Full character specification demonstrating all features.
+# Run with: hamr build examples/runa_gridweaver.yaml --out output/
+#
+# Every vertex, every slider, every algorithm is yours.
+# =============================================================================
+
+name: "Runa Gridweaver"
+version: "1.0"
+
+body:
+  height_cm: 172
+  build: athletic-slender
+
+  skin:
+    base_hex: "#E8B87A"
+    undertone: warm
+    sss: true
+
+  proportions:
+    shoulder_width: 0.40
+    bust: 0.45
+    waist: 0.32
+    hip_width: 0.52
+    leg_length: 0.52
+
+hair:
+  style: wavy
+  length: very-long
+  volume: 0.7
+  color:
+    roots: "#C4A265"
+    mid: "#D4B47A"
+    tips: "#E8D0A0"
+    highlight: "#F0E0B8"
+
+face:
+  eyes:
+    iris_hex: "#4169E1"
+    pupil_hex: "#1A1A2E"
+    sclera_hex: "#F8F8F0"
+    shape: round
+    size: 1.1
+
+  eyebrows:
+    color_hex: "#B8944A"
+    thickness: 0.07
+    shape: arched
+
+  nose:
+    bridge_width: 0.35
+    tip_width: 0.30
+    bridge_height: 0.50
+    definition: 0.55
+    nostril_width: 0.30
+
+  mouth:
+    lip_hex: "#C47070"
+    width: 0.38
+    fullness: 0.55
+    upper_curve: 0.40
+    lower_fullness: 0.50
+    smile_width: 0.60
+
+  cheeks:
+    blush_hex: "#E0A0A0"
+    bone_width: 0.60
+    fat: 0.30
+
+  ears:
+    size: 0.40
+    protrusion: 0.20
+    elf_factor: 0.0
+
+  chin:
+    width: 0.30
+    protrusion: 0.40
+    jaw_width: 0.40
+
+export:
+  format: vrm1
+  title: "Runa Gridweaver"
+  author: "Volmarr & Runa"
+  version: "1.0"
+  license: CC-BY-4.0

@@ -6,6 +6,7 @@ Usage:
     hamr validate spec.yaml
     hamr inspect output/avatar.vrm --targets VRCHAT
     hamr list-presets
+    hamr check-env
     hamr version
 """
 
@@ -17,23 +18,28 @@ import sys
 from pathlib import Path
 
 from hamr.core.constants import BODY_PRESETS
-from hamr.core.validate import validate_spec
 from hamr.core.errors import HamrError, SpecValidationError
 
 
 def cmd_build(args: argparse.Namespace) -> int:
     """Build a character from a spec file."""
-    from hamr.core.builder import build
+    from hamr.core.pipeline import BuildPipeline
+
+    pipeline = BuildPipeline(
+        blender_path=args.blender_path,
+        blender_timeout=args.timeout,
+        keep_temp=args.keep_temp,
+    )
 
     try:
-        output = build(
+        result = pipeline.build(
             spec_path=args.spec,
             output_dir=args.out,
             format=args.format,
+            base_mesh=args.base,
             validate=not args.no_validate,
+            max_tex=args.max_tex,
         )
-        print(f"✓ Character built: {output}")
-        return 0
     except SpecValidationError as e:
         print(f"✗ Validation failed: {e}", file=sys.stderr)
         return 2
@@ -41,12 +47,25 @@ def cmd_build(args: argparse.Namespace) -> int:
         print(f"✗ Build error: {e}", file=sys.stderr)
         return 1
 
+    if result.success:
+        print(f"✓ Character built: {result.output_path}")
+        if result.output_size_mb:
+            print(f"  Size: {result.output_size_mb:.1f} MB")
+        print(f"  Time: {result.elapsed:.1f}s")
+        return 0
+    else:
+        print(f"✗ Build failed:", file=sys.stderr)
+        for err in result.errors:
+            print(f"  • {err}", file=sys.stderr)
+        return 1
+
 
 def cmd_validate(args: argparse.Namespace) -> int:
     """Validate a spec without building."""
-    from hamr.core.builder import validate_only
+    from hamr.core.pipeline import BuildPipeline
 
-    errors = validate_only(args.spec)
+    pipeline = BuildPipeline()
+    errors = pipeline.validate_only(args.spec)
     if errors:
         print(f"✗ {len(errors)} validation error(s):")
         for err in errors:
@@ -75,9 +94,33 @@ def cmd_list_presets(args: argparse.Namespace) -> int:
     print("Available body presets:")
     print("-" * 40)
     for name, proportions in BODY_PRESETS.items():
-        desc = ", ".join(f"{k}={v:.1f}" for k, v in proportions.items())
+        desc = ", ".join(f"{k}={v:.2f}" for k, v in proportions.items())
         print(f"  {name:20s}  {desc}")
     return 0
+
+
+def cmd_check_env(args: argparse.Namespace) -> int:
+    """Check the build environment for readiness."""
+    from hamr.core.pipeline import BuildPipeline
+
+    pipeline = BuildPipeline()
+    env = pipeline.check_environment()
+
+    print("Hamr Build Environment Check")
+    print("=" * 40)
+
+    blender_ok = env.get("blender_available", False)
+    print(f"  Blender:     {'✓ ' + str(env.get('blender_version', '')) if blender_ok else '✗ Not found'}")
+    print(f"  VRM Addon:   {'✓ Installed' if env.get('vrm_addon') else '✗ Not found' if env.get('vrm_addon') is not None else '? Unknown'}")
+    print(f"  MB-Lab:      {'✓ Installed' if env.get('mblab_addon') else '✗ Not found' if env.get('mblab_addon') is not None else '? Unknown'}")
+    print(f"  Build Script:{'✓ Found' if env.get('build_script') else '✗ Not found'}")
+
+    if blender_ok:
+        return 0
+    else:
+        print("\n⚠  Blender not found. Install Blender and add it to PATH.")
+        print("   Or specify path with --blender-path.")
+        return 1
 
 
 def cmd_version(args: argparse.Namespace) -> int:
@@ -101,7 +144,12 @@ def main() -> int:
     build_parser.add_argument("spec", help="Path to YAML spec file")
     build_parser.add_argument("--out", "-o", default="output/", help="Output directory")
     build_parser.add_argument("--format", "-f", default="vrm", choices=["vrm", "glb"])
+    build_parser.add_argument("--base", "-b", default=None, help="Base mesh path (.vrm, .fbx, .glb)")
     build_parser.add_argument("--no-validate", action="store_true", help="Skip validation")
+    build_parser.add_argument("--keep-temp", action="store_true", help="Keep temp files (debug)")
+    build_parser.add_argument("--max-tex", type=int, default=0, help="Max texture resolution (0=unlimited)")
+    build_parser.add_argument("--timeout", type=int, default=600, help="Blender timeout in seconds")
+    build_parser.add_argument("--blender-path", default=None, help="Path to Blender executable")
     build_parser.set_defaults(func=cmd_build)
 
     # validate
@@ -117,6 +165,9 @@ def main() -> int:
 
     # list-presets
     subparsers.add_parser("list-presets", help="List body presets").set_defaults(func=cmd_list_presets)
+
+    # check-env
+    subparsers.add_parser("check-env", help="Check build environment").set_defaults(func=cmd_check_env)
 
     # version
     subparsers.add_parser("version", help="Print version").set_defaults(func=cmd_version)

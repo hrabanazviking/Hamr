@@ -1,0 +1,27 @@
+# =============================================================================
+# Hamr Quick Start — Minimal Character Spec
+# =============================================================================
+# The simplest possible spec. Just a name and the defaults.
+# Run with: hamr build examples/minimal.yaml --out output/
+#
+# The forge fills in everything else.
+# =============================================================================
+
+name: "Quick Avatar"
+version: "1.0"
+
+body:
+  height_cm: 165
+  build: average
+  skin:
+    base_hex: "#E8B87A"
+
+hair:
+  style: wavy
+  color:
+    roots: "#4A2E14"
+
+export:
+  format: vrm1
+  title: "Quick Avatar"
+  author: "Hamr Forge"

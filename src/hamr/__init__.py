@@ -5,90 +5,38 @@ Open-source parametric 3D anime character forge.
 Linux-native, headless-first, agent-orchestrated, VRM 1.0.
 
 "Every vertex, every slider, every algorithm is yours."
-    — Runa Gridweaver Freyjasdottir
 
-Quick start:
-    from hamr import build, validate, inspect
-    from hamr.core.models import CharacterSpec, BodySpec
-
-    # Build a character from spec
-    output = build("spec.yaml", output_dir="output/")
-
-    # Validate without building
-    errors = validate("spec.yaml")
-
-    # Inspect a VRM file
-    report = inspect("output/character.vrm", targets=["VRCHAT"])
+Modules:
+    core        — Spec parser, models, validation, constants, pipeline
+    blender_bridge — Headless Blender subprocess bridge
+    body        — Body Forge: presets, proportion mapping
+    export      — Export Forge: VRM 1.0 and GLB export
+    face        — Face Forge: expression mapping (Phase 3)
+    hair        — Hair Forge: procedural hair (Phase 3)
+    clothing    — Clothing Forge: outfits (Phase 3)
+    rigs        — Rig mapping reference
 """
 
-__version__ = "0.2.0"
-__author__ = "Runa Gridweaver Freyjasdottir & Volmarr"
+__version__ = "0.3.0"
+__author__ = "Volmarr & Runa — hrabanazviking"
 
-# Core — the sacred contracts
-from hamr.core import (
-    Spec,
-    CharacterSpec,
-    BodySpec,
-    FaceSpec,
-    HairSpec,
-    HamrError,
-    SpecValidationError,
-    BuildError,
-    ExportError,
-    build,
-    validate_only,
-    inspect,
+from hamr.core.spec import Spec
+from hamr.core.models import (
+    CharacterSpec, BodySpec, SkinSpec, FaceSpec, HairSpec,
+    HairColorSpec, ExportSpec,
 )
-
-# Blender Bridge — the völva's sight
-from hamr.blender_bridge import (
-    BlenderResult,
-    run_blender_script,
-    run_inline_script,
-    check_blender_available,
-    get_blender_version,
+from hamr.core.errors import (
+    HamrError, SpecValidationError, BuildError, ExportError,
 )
-
-# Texture Forge — pure Pillow, no Blender needed
-from hamr.core.textures import (
-    shift_hsv,
-    tint_texture,
-    generate_gradient_texture,
-    generate_skin_texture,
-    generate_hair_texture,
-)
-
-# Body Forge — parametric bodies
-from hamr.body import BodyForge, BODY_PRESETS, BODY_PRESET_ALIASES
-
-# Export Forge — VRM 1.0 & GLB
-from hamr.export import (
-    MB_LAB_BONE_MAP,
-    VRM_REQUIRED_BONES,
-    setup_vrm_humanoid,
-    setup_vrm_metadata,
-    setup_vrm_expressions,
-    setup_vrm_look_at,
-    export_vrm,
-    export_glb,
-)
+from hamr.core.pipeline import BuildPipeline, PipelineResult
 
 __all__ = [
     # Core
-    "Spec", "CharacterSpec", "BodySpec", "FaceSpec", "HairSpec",
+    "Spec",
+    "CharacterSpec", "BodySpec", "SkinSpec", "FaceSpec",
+    "HairSpec", "HairColorSpec", "ExportSpec",
+    # Errors
     "HamrError", "SpecValidationError", "BuildError", "ExportError",
-    "build", "validate_only", "inspect",
-    # Blender Bridge
-    "BlenderResult", "run_blender_script", "run_inline_script",
-    "check_blender_available", "get_blender_version",
-    # Textures
-    "shift_hsv", "tint_texture", "generate_gradient_texture",
-    "generate_skin_texture", "generate_hair_texture",
-    # Body
-    "BodyForge", "BODY_PRESETS", "BODY_PRESET_ALIASES",
-    # Export
-    "MB_LAB_BONE_MAP", "VRM_REQUIRED_BONES",
-    "setup_vrm_humanoid", "setup_vrm_metadata",
-    "setup_vrm_expressions", "setup_vrm_look_at",
-    "export_vrm", "export_glb",
+    # Pipeline
+    "BuildPipeline", "PipelineResult",
 ]
