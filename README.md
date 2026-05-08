@@ -38,10 +38,6 @@ No GUI. No Windows dependency. No closed-source lock-in.
 
 ---
 
-![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg)
-
----
-
 ## ✨ Features
 
 - **YAML-First Spec** — Define characters in simple YAML files, not GUI clicks
