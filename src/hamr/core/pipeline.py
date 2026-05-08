@@ -20,7 +20,7 @@ from hamr.core.spec import Spec
 from hamr.core.models import CharacterSpec, ExportSpec
 from hamr.core.validate import validate_spec
 from hamr.core.errors import HamrError, SpecValidationError, BuildError, ExportError
-from hamr.blender_bridge.runner import run_blender_script, BlenderResult, check_blender_available, get_blender_version
+from hamr.blender_bridge.runner import run_blender_script, run_inline_script, BlenderResult, check_blender_available, get_blender_version
 
 logger = logging.getLogger("hamr.pipeline")
 
@@ -299,19 +299,11 @@ import json
 print("HAMR_ADDON_CHECK:" + json.dumps(results))
 '''
 
-        result = run_blender_script(
-            script_path=None,  # Will use run_inline_script
-            script_args=[],
-            timeout=30,
-        )
-
-        # We need run_inline_script for this
-        from hamr.blender_bridge.runner import run_inline_script
-        bl_result = run_inline_script(check_script, timeout=30)
+        result = run_inline_script(check_script, timeout=30)
 
         addon_status = {"vrm_addon": None, "mblab_addon": None}
 
-        for line in bl_result.stdout.splitlines():
+        for line in result.stdout.splitlines():
             if "HAMR_ADDON_CHECK:" in line:
                 json_str = line.split("HAMR_ADDON_CHECK:", 1)[1]
                 try:

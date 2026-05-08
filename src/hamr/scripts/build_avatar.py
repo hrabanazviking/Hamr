@@ -164,6 +164,62 @@ HAIR_KEYWORDS = ("hair", "hairs", "scalp")
 NAIL_KEYWORDS = ("nail", "nails")
 LIP_KEYWORDS = ("lip", "lips", "mouth_inner")
 
+# TurboSquid expression map — standard humanoid rig shape keys
+# TurboSquid rigs typically use different naming conventions from MB-Lab
+TURBOSQUID_EXPRESSION_MAP: dict[str, list[dict]] = {
+    "happy": [
+        {"mesh": "Body", "shape_key": "Smile", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "EyeSquint_L", "weight": 0.4},
+        {"mesh": "Body", "shape_key": "EyeSquint_R", "weight": 0.4},
+    ],
+    "angry": [
+        {"mesh": "Body", "shape_key": "BrowFurrow_L", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "BrowFurrow_R", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "Frown_L", "weight": 0.5},
+        {"mesh": "Body", "shape_key": "Frown_R", "weight": 0.5},
+    ],
+    "sad": [
+        {"mesh": "Body", "shape_key": "Frown_L", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "Frown_R", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "BrowSad_L", "weight": 0.6},
+        {"mesh": "Body", "shape_key": "BrowSad_R", "weight": 0.6},
+    ],
+    "relaxed": [
+        {"mesh": "Body", "shape_key": "Smile", "weight": 0.3},
+    ],
+    "surprised": [
+        {"mesh": "Body", "shape_key": "EyeWide_L", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "EyeWide_R", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "JawOpen", "weight": 0.5},
+    ],
+    "blink": [
+        {"mesh": "Body", "shape_key": "Blink_L", "weight": 1.0},
+        {"mesh": "Body", "shape_key": "Blink_R", "weight": 1.0},
+    ],
+    "blinkLeft": [
+        {"mesh": "Body", "shape_key": "Blink_L", "weight": 1.0},
+    ],
+    "blinkRight": [
+        {"mesh": "Body", "shape_key": "Blink_R", "weight": 1.0},
+    ],
+    "aa": [
+        {"mesh": "Body", "shape_key": "JawOpen", "weight": 1.0},
+    ],
+    "ih": [
+        {"mesh": "Body", "shape_key": "MouthWide", "weight": 0.6},
+    ],
+    "ou": [
+        {"mesh": "Body", "shape_key": "MouthPucker", "weight": 1.0},
+    ],
+    "ee": [
+        {"mesh": "Body", "shape_key": "Smile", "weight": 0.5},
+        {"mesh": "Body", "shape_key": "MouthWide", "weight": 0.5},
+    ],
+    "oh": [
+        {"mesh": "Body", "shape_key": "JawOpen", "weight": 0.7},
+    ],
+}
+
 
 def parse_args(argv: list[str]) -> dict:
     """Parse command-line arguments."""
