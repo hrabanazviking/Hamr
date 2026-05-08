@@ -1,5 +1,9 @@
+include pyproject.toml
+recursive-include src/hamr *.py *.pyi
+recursive-include src/hamr/scripts *.py
+recursive-include tests *.py
+recursive-include examples *.yaml
 include LICENSE
 include README.md
+include CHANGELOG.md
 include CONTRIBUTING.md
-recursive-include src/hamr/scripts *.py
-recursive-include examples *.yaml

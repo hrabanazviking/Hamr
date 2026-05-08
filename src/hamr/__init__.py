@@ -33,7 +33,13 @@ from hamr.hair import resolve_hair, list_hair_presets, list_gradient_presets
 from hamr.face import resolve_face, list_jaw_presets, list_eye_shape_presets
 from hamr.clothing import resolve_clothing, list_clothing_types, list_material_categories
 
+def get_version() -> str:
+    """Return the current Hamr version string."""
+    return __version__
+
 __all__ = [
+    # Version
+    "__version__", "__author__", "get_version",
     # Core
     "Spec",
     "CharacterSpec", "BodySpec", "SkinSpec", "FaceSpec",
