@@ -1,0 +1,15 @@
+pyproject.toml
+src/hamr/__init__.py
+src/hamr/cli.py
+src/hamr.egg-info/PKG-INFO
+src/hamr.egg-info/SOURCES.txt
+src/hamr.egg-info/dependency_links.txt
+src/hamr.egg-info/entry_points.txt
+src/hamr.egg-info/requires.txt
+src/hamr.egg-info/top_level.txt
+src/hamr/core/constants.py
+src/hamr/core/errors.py
+src/hamr/core/models.py
+src/hamr/core/spec.py
+src/hamr/core/validate.py
+tests/test_spec.py

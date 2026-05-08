@@ -1,0 +1,4 @@
+hamr
+scripts
+templates
+tests

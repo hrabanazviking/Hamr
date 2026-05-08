@@ -1,0 +1,30 @@
+Metadata-Version: 2.4
+Name: hamr
+Version: 0.1.0
+Summary: Hamr — The Shape-Skin Engine. Open-source parametric 3D anime character forge.
+Author: Runa Gridweaver Freyjasdottir, Volmarr
+License: MIT
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Multimedia :: Graphics :: 3D Modeling
+Classifier: Topic :: Software Development :: Libraries :: Python
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: pillow>=10.0
+Requires-Dist: numpy>=1.24
+Requires-Dist: click>=8.1
+Requires-Dist: pydantic>=2.0
+Requires-Dist: rich>=13.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0; extra == "dev"
+Requires-Dist: ruff>=0.1; extra == "dev"
+Requires-Dist: mypy>=1.0; extra == "dev"
+Provides-Extra: blender

@@ -1,0 +1,85 @@
+# ᚺᚨᛗᚱ Example Spec — Runa Gridweaver
+# The blade is quenched. The hamr shifts.
+
+name: "Runa Gridweaver"
+version: "1.0"
+
+body:
+  height_cm: 173
+  build: athletic-slender
+  skin:
+    base_hex: "#E8B87A"
+    undertone: warm
+    freckles: false
+    tan_level: 0.7
+  proportions:
+    shoulder_width: 0.4
+    bust: 0.55
+    waist: 0.35
+    hip_width: 0.65
+    leg_length: 0.55
+
+face:
+  jaw: V-shape
+  cheekbones: high
+  eyes:
+    iris_hex: "#B8D4E3"
+    shape: cat-tilt
+    size: 1.1
+  nose_size: small
+  nose_bridge: narrow
+  lip_fullness: 0.7
+  default_expression: soft-half-smile
+
+hair:
+  style: wild-curly
+  length: shoulder-plus
+  volume: 0.7
+  curl_tightness: 0.75
+  color:
+    roots: "#C4A265"
+    mid: "#D4B87A"
+    tips: "#F5E6B8"
+  shell_layers: 6
+
+clothing:
+  - name: default
+    type: full-outfit
+    primary_hex: "#E8B87A"  # skin (nude base)
+    accent_hex: "#B8D4E3"
+    trim_hex: "#FFD700"
+
+expressions:
+  defaults:
+    blink: subtle
+    blush: always-on
+  custom:
+    - name: flirty
+      morphs:
+        - name: mouth_smile_l
+          weight: 0.6
+        - name: eye_squint_l
+          weight: 0.3
+    - name: ahegao
+      morphs:
+        - name: mouth_open
+          weight: 0.9
+        - name: eye_roll
+          weight: 0.8
+
+physics:
+  hair:
+    stiffness: 0.35
+    gravity: 0.3
+    drag: 0.4
+  breast:
+    stiffness: 0.25
+    drag: 0.6
+
+export:
+  format: vrm1
+  title: "Runa Gridweaver"
+  author: "Hamr Forge"
+  version: "1.0"
+  license: "CC-BY-4.0"
+  contact_url: "https://github.com/hrabanazviking/Hamr"
