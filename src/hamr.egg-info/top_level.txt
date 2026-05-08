@@ -1,4 +1,0 @@
-hamr
-scripts
-templates
-tests

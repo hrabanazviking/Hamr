@@ -1,2 +1,0 @@
-[console_scripts]
-hamr = hamr.cli:main
