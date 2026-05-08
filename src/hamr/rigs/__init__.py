@@ -44,6 +44,15 @@ from hamr.rigs.spring_bones import (
     configure_clothing_spring,
     apply_spring_bones,
 )
+from hamr.rigs.collision import (
+    CollisionMeshResult,
+    COLLIDER_REGIONS,
+    CollisionMeshGenerator,
+    compute_collider_radius,
+    generate_collider_list,
+    compute_collision_mesh_summary,
+    validate_collision_config,
+)
 from hamr.export.vrm import MB_LAB_BONE_MAP, VRM_REQUIRED_BONES
 from hamr.core.constants import VRM_25_BONE_NAMES
 
@@ -86,4 +95,12 @@ __all__ = [
     "configure_breast_spring",
     "configure_clothing_spring",
     "apply_spring_bones",
+    # Collision meshes
+    "CollisionMeshResult",
+    "COLLIDER_REGIONS",
+    "CollisionMeshGenerator",
+    "compute_collider_radius",
+    "generate_collider_list",
+    "compute_collision_mesh_summary",
+    "validate_collision_config",
 ]
