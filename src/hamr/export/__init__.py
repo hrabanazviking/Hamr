@@ -32,6 +32,18 @@ from hamr.export.vrm_validator import (
     extract_json_chunk,
     is_valid_vrm_binary,
 )
+from hamr.export.animation_clips import (
+    AnimationKeyframe,
+    AnimationClip,
+    PRESET_CLIPS,
+    create_keyframe,
+    create_clip,
+    validate_clip,
+    keyframes_to_dict,
+    get_preset_clips,
+    clip_to_gltf_animation,
+    MB_LAB_TO_VRM,
+)
 
 __all__ = [
     # VRM export
@@ -60,4 +72,15 @@ __all__ = [
     "parse_vrm_bytes",
     "extract_json_chunk",
     "is_valid_vrm_binary",
+    # Animation clips
+    "AnimationKeyframe",
+    "AnimationClip",
+    "PRESET_CLIPS",
+    "create_keyframe",
+    "create_clip",
+    "validate_clip",
+    "keyframes_to_dict",
+    "get_preset_clips",
+    "clip_to_gltf_animation",
+    "MB_LAB_TO_VRM",
 ]
