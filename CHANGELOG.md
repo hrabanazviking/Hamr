@@ -5,6 +5,100 @@ All notable changes to Hamr will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-05-08
+
+### Added — Phase 11: Alvíssmál (All-Wise, All-Formed)
+
+#### T1: Stub Bones — 25/25 Humanoid Bone Mapping
+- **`hamr/rigs/stub_bones.py`** — `create_missing_bones()` creates micro-stub bones for jaw, leftEye, rightEye that MB-Lab omits
+- Stubs are 0.5cm, parented to head, tagged `_hamr_stub=True`
+- VRM 1.0 export now maps all 25 required humanoid bones
+- TurboSquid bone map verified — no regression on its native 25/25
+
+#### T2: Hair Mesh Generation — Procedural Mesh Hair
+- **`hamr/hair/mesh.py`** — `HairForge` full procedural mesh hair engine
+- 5 hair styles: straight, wavy, curly, braided, bob (with ponytail and twin-tails modeled as variants)
+- Bezier curve → mesh pipeline (no particle systems — deterministic, Pi-compatible)
+- Root→mid→tip gradient via vertex colors from `HairSpec.color`
+- Length parameters: ear, chin, shoulder, mid-back, waist, very-long
+- Volume parameter: 0.1–1.0
+- Hair mesh parented to head bone for proper deformation
+
+#### T3: Clothing Mesh Generation — Shrinkwrap Fit
+- **`hamr/clothing/mesh.py`** — `ClothingForge` parametric clothing engine
+- 6 clothing patterns: tshirt, shorts, skirt, dress, hoodie, school_uniform
+- Shrinkwrap-to-body strategy for automatic fitting
+- Garment thickness offset along normals
+- Weight paint transfer from body mesh to clothing
+- Clothing material assignment with color from spec
+
+#### T4: Weight Paint Engine — Smooth Deformations
+- **`hamr/rigs/weights.py`** — `WeightPaintEngine` with `paint_smooth()` and `get_quality_score()`
+- Boundary smoothing at neck, shoulders, hips, knees, elbows
+- Ensures minimum 3 vertex groups per joint vertex (no rigid 1-bone sections)
+- Normalization enforcement — all vertex groups sum to 1.0
+- Quality score algorithm: avg_groups_per_vertex, max_weight_variance, normalization_rate
+- Transfer weights from body to clothing meshes
+
+#### T5: Rig Verification Tool — CLI Compliance Checker
+- **`hamr/rigs/verify.py`** — `RigVerifier` class with `verify()` → `RigReport`
+- Checks: humanoid bone count (25/25), bone naming, hierarchy, expression count, lookAt config
+- Missing/unmapped bone detection
+- Weight paint quality score integration
+- Spring bone group verification
+- First-person annotation check
+- Exit codes: 0 = compliant, 1 = warnings, 2 = failures
+- CLI: `hamr verify-rig <vrm>` with `--json` and `--quiet` flags
+
+#### T6: Performance Budgets — Pi 5 Optimization
+- **`hamr/core/perf.py`** — `PerfBudget` and `PerfTracker` for Pi 5 resource guarding
+- Memory tiers: minimal (512MB), standard (1GB), full (1.5GB) with hard caps
+- Lazy texture generation — skip unused texture slots
+- Blender subprocess timeout guard (120s, clean exit on timeout)
+- Hair mesh triangle caps (low/medium/high density)
+- `time hamr build --preset casual_f` < 45s on Pi 5 target
+- `pytest tests/ -m perf` suite
+
+#### T7: Character Presets — VRoid-Style Templates
+- **`hamr/core/presets.py`** — `PresetLoader` with deep merge, validation, and CLI integration
+- 6 presets: casual_m, casual_f, student_m, student_f, fantasy_m, fantasy_f
+- `hamr build --preset <name>` generates a character from preset YAML
+- Deep merge: user spec overrides preset defaults, preserving nested structure
+- Preset validation against CharacterSpec schema
+- Assets stored in `assets/presets/` as YAML files
+
+#### T8: VRM 1.0 Compliance — Spring Bones, First-Person, Expressions
+- **`hamr/rigs/spring_bones.py`** — Spring bone group creation for hair physics
+- **`hamr/export/first_person.py`** — First-person mesh annotations (visibility flags per render subset)
+- Spring bone groups with configurable stiffness, gravity, drag, collider groups
+- Expression blink timing with crossfade intervals
+- VRM meta: version, author, contactInformation, referenceInformation
+- `pyproject.toml` — Version bumped to 0.4.0, new pytest markers (`perf`, `blender`, `e2e`)
+
+### Changed
+- `src/hamr/rigs/__init__.py` — Exported `stub_bones`, `weights`, `verify`, `spring_bones` modules
+- `src/hamr/hair/__init__.py` — Exported `mesh` (HairForge)
+- `src/hamr/clothing/__init__.py` — Exported `mesh` (ClothingForge)
+- `src/hamr/export/__init__.py` — Exported `first_person` module
+- `src/hamr/core/__init__.py` — Exported `perf` and `presets` modules
+- `src/hamr/core/constants.py` — Added `VRM_25_BONE_NAMES` constant, clothing pattern names, hair style names, length enums
+- `src/hamr/export/vrm.py` — Spring bone and first-person annotation integration
+
+### Tests Added (Phase 11)
+- `tests/test_stub_bones.py` — 501 lines, tests for stub bone creation, mapping, edge cases
+- `tests/test_hair_mesh.py` — 551 lines, tests for hair mesh generation, style dispatch, color gradients
+- `tests/test_clothing_mesh.py` — 564 lines, tests for clothing patterns, shrinkwrap fitting, weight transfer
+- `tests/test_weights.py` — 580 lines, tests for weight paint smoothing, normalization, quality scoring
+- `tests/test_verify.py` — 698 lines, tests for rig verification, compliance checks, CLI flags
+- `tests/test_perf.py` — 598 lines, tests for performance budgets, memory tiers, timeout guards
+- `tests/test_presets.py` — 346 lines, tests for preset loading, deep merge, validation, CLI
+- `tests/test_spring_bones.py` — 419 lines, tests for spring bone groups, collider config, VRM serialization
+- `tests/test_first_person.py` — 335 lines, tests for first-person annotations, mesh visibility flags
+
+**Total: 556 tests passing**
+
+---
+
 ## [0.3.0] - 2026-05-08
 
 ### Added — Phase 4: Tempering
