@@ -289,7 +289,7 @@ results["vrm_addon"] = vrm_found
 # Check MB-Lab addon
 mblab_found = False
 for mod in addon_utils.modules():
-    if "mblab" in mod.__name__:
+    if any(k in mod.__name__.lower() for k in ("mblab", "mb-lab", "mb_lab")):
         mblab_found = True
         break
 results["mblab_addon"] = mblab_found
