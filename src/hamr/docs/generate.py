@@ -211,6 +211,7 @@ def _build_parser() -> argparse.ArgumentParser:
     gen_p = docs_sub.add_parser("generate", help="Generate all documentation files")
     gen_p.add_argument("--output", "-o", default="docs",
                        help="Output directory for generated docs")
+    audit_p = docs_sub.add_parser("audit", help="Run accessibility and compliance audit")
 
     return parser
 
@@ -276,6 +277,7 @@ def _extract_command(name: str, parser: argparse.ArgumentParser) -> CliCommand:
         "docs": [
             "hamr docs generate",
             "hamr docs generate --output docs/",
+            "hamr docs audit",
         ],
     }
     examples = example_map.get(name, [])

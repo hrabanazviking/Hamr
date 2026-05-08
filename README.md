@@ -14,7 +14,8 @@
 
 Linux-native · Headless-first · Agent-orchestrated · VRM 1.0
 
-[![Tests](https://img.shields.io/badge/tests-103%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-0.7.0rc1-blue)]()
+[![Tests](https://img.shields.io/badge/tests-1768%20passing-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)]()
 [![Blender](https://img.shields.io/badge/blender-3.4%2B-orange)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)]()
@@ -38,6 +39,26 @@ No GUI. No Windows dependency. No closed-source lock-in.
 
 ---
 
+## 🆕 What's New in v0.7.0
+
+- **14-Stage Build Pipeline** — Explicit numbered stages with timing, skip-stages, and dry-run
+- **6 Character Presets** — Built-in presets (anime girl, warrior, chibi, and more) with deep merge
+- **Procedural Hair & Clothing** — 5 hair styles, 6 clothing patterns, weight paint transfer
+- **Face Expressions** — Auto-discovery of shape keys, VRM 1.0 expression presets (6+)
+- **Materials Forge** — Eevee-optimized anime shaders (skin, eye, hair, clothing)
+- **Texture Forge** — Procedural skin detail, iris, hair gradients, fabric normals (Pillow-based)
+- **GPU-Adaptive Quality** — Pi 5 / Desktop / Cloud profiles with memory budget enforcement
+- **VRM 1.0 Validator** — Binary glTF parsing, bone coverage check, spring bone validation
+- **Animation Clips** — Idle breathe, weight shift, look around, walk cycle
+- **Accessibility-First CLI** — `--no-color`, `--quiet`, `--json` flags; actionable error suggestions
+- **Auto-Generated Docs** — CLI reference, architecture diagram, preset guide from live code
+- **A11y Compliance Checker** — `hamr docs audit` scans modules for docs, types, and accessibility
+- **1,768 Tests** — Every forge tested, every path validated
+
+See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full changelog.
+
+---
+
 ## ✨ Features
 
 - **YAML-First Spec** — Define characters in simple YAML files, not GUI clicks
@@ -48,7 +69,8 @@ No GUI. No Windows dependency. No closed-source lock-in.
 - **VRM 1.0 Export** — Spring bones, expressions, look-at, first-person annotations
 - **Blender Headless** — Runs entirely in `blender --background`, no GUI required
 - **Agent-Orchestrated** — Designed for AI-driven creation pipelines
-- **103 Tests** — Every forge tested, every path validated
+- **Accessibility-First** — `--no-color`, `--json`, `--quiet` on every command
+- **1,768 Tests** — Every forge tested, every path validated
 
 ## 🗡️ Quick Start
 
@@ -59,17 +81,29 @@ pip install hamr
 # Create a character from a spec
 hamr build my_character.yaml --out output/
 
+# Or build from a preset
+hamr build --preset anime_girl_default
+
 # Validate a spec without building
 hamr validate my_character.yaml
 
 # Check your Blender environment
 hamr check-env
 
-# List available body presets
+# List available presets
 hamr list-presets
 
 # Inspect a VRM file
 hamr inspect output/avatar.vrm
+
+# Verify a VRM rig
+hamr verify-rig output/avatar.vrm
+
+# Run accessibility audit
+hamr docs audit
+
+# Generate documentation
+hamr docs generate
 ```
 
 ---
@@ -221,17 +255,43 @@ Hamr is organized as **six forges** around a central spec:
 | `core/builder` | Pipeline orchestrator (validate → build → export) |
 | `core/pipeline` | Full `BuildPipeline` with error handling |
 | `core/textures` | HSV-driven procedural texture generation |
+| `core/texture_procedural` | Skin detail, fabric normal, eye iris generators |
+| `core/perf` | Performance budgets and GPU- adaptive quality |
 | `core/constants` | Body presets, skin palettes, bone names |
-| `body/` | Body proportions and presets |
+| `hair/` | Procedural hair styles, color gradients, physics |
+| `face/` | Shape keys, expression mapping, sliders |
+| `clothing/` | Outfit layers, materials, tinting |
+| `rigs/` | Bone mapping, weight painting, spring bones |
 | `blender_bridge/` | Headless Blender subprocess runner |
 | `export/` | VRM 1.0 export with bone maps and expressions |
-| `hair/` | Procedural hair (Phase 7) |
-| `face/` | Detailed facial controls (Phase 7) |
-| `clothing/` | Parametric outfits (Phase 7) |
+| `docs/` | Auto-generated documentation & a11y audit |
+| `cli` | Command-line interface |
 
 ---
 
 ![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/e7f18ecb-1916-4b15-be64-a7351fec37ee.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/e7f18ecb-1916-4b15-be64-a7351fec37ee.jpg)
+
+---
+
+## 📖 CLI Reference
+
+Hamr's CLI provides these commands:
+
+| Command | Description |
+|---------|-------------|
+| `hamr build` | Build a character from spec or preset |
+| `hamr validate` | Validate a spec without building |
+| `hamr inspect` | Inspect VRM/GLB file compliance |
+| `hamr list-presets` | List available presets |
+| `hamr verify-rig` | Verify VRM rig completeness |
+| `hamr check-env` | Check build environment |
+| `hamr version` | Print version |
+| `hamr docs generate` | Generate documentation files |
+| `hamr docs audit` | Run accessibility & compliance audit |
+
+All commands support `--no-color`, `--quiet`, and `--json` flags for accessibility.
+
+See `hamr <command> --help` for detailed options. Auto-generated CLI docs are available via `hamr docs generate`.
 
 ---
 
@@ -257,7 +317,27 @@ Hamr incorporates hard-won lessons from building Seiðr-Smiðja:
 
 ---
 
-## 🔧 Development
+## 🔧 Installation
+
+```bash
+# Install from PyPI (when published)
+pip install hamr
+
+# Or install from source
+git clone https://github.com/hrabanazviking/Hamr.git
+cd Hamr
+pip install -e ".[dev]"
+```
+
+### Requirements
+
+- **Python 3.11+**
+- **Blender 3.4+** (for full build pipeline — headless mode)
+- **PyYAML**, **Pillow**, **numpy** (auto-installed with pip)
+
+---
+
+## 🧪 Development
 
 ```bash
 # Clone
@@ -273,12 +353,17 @@ pytest tests/ -v
 # Run with coverage
 pytest tests/ --cov=hamr --cov-report=term-missing
 
+# Run a11y audit
+hamr docs audit
+
+# Generate documentation
+hamr docs generate --output docs/
+
 # Lint
 ruff check src/hamr/
-
-# Build docs
-cd docs/
 ```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
 
 ---
 

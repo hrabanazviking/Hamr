@@ -466,6 +466,42 @@ def cmd_docs(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_docs_audit(args: argparse.Namespace) -> int:
+    """Run accessibility and compliance audit on all hamr modules."""
+    from hamr.docs.a11y_audit import audit_all_modules, format_audit_report
+
+    opts = _a11y_from_args(args)
+    results = audit_all_modules()
+
+    if opts.json_output:
+        data = []
+        for r in results:
+            data.append({
+                "module": r.module,
+                "passed": r.passed,
+                "critical_count": r.critical_count,
+                "warning_count": r.warning_count,
+                "info_count": r.info_count,
+                "issues": [
+                    {
+                        "function": i.function,
+                        "severity": i.severity,
+                        "description": i.description,
+                        "suggestion": i.suggestion,
+                    }
+                    for i in r.issues
+                ],
+            })
+        print(format_json_output(data, opts))
+    else:
+        report = format_audit_report(results)
+        print(report)
+
+    # Exit 1 if any critical issues, 0 otherwise
+    total_critical = sum(r.critical_count for r in results)
+    return 1 if total_critical > 0 else 0
+
+
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -567,6 +603,10 @@ def main() -> int:
     docs_gen = docs_sub.add_parser("generate", help="Generate all documentation files")
     docs_gen.add_argument("--output", "-o", default="docs", help="Output directory for generated docs")
     docs_gen.set_defaults(func=cmd_docs)
+
+    # docs audit
+    docs_audit = docs_sub.add_parser("audit", help="Run accessibility and compliance audit")
+    docs_audit.set_defaults(func=cmd_docs_audit)
 
     args = parser.parse_args()
 
