@@ -26,7 +26,62 @@ HAIR_TIPS_HEX = "#F5E6B8"  # Light platinum tips
 HAIR_SHADOW_HEX = "#8A7A4A"  # Shadow in curls
 
 # ── VRM Bone Mapping ──────────────────────────────────────────
-# Canonical VRM 1.0 humanoid bone names
+# VRM 1.0 required humanoid bones (the 25 bones every VRM must map)
+VRM_25_BONE_NAMES: list[str] = [
+    "hips",
+    "leftUpperLeg",
+    "rightUpperLeg",
+    "leftLowerLeg",
+    "rightLowerLeg",
+    "leftFoot",
+    "rightFoot",
+    "leftToes",
+    "rightToes",
+    "spine",
+    "chest",
+    "upperChest",
+    "neck",
+    "head",
+    "leftShoulder",
+    "rightShoulder",
+    "leftUpperArm",
+    "rightUpperArm",
+    "leftLowerArm",
+    "rightLowerArm",
+    "leftHand",
+    "rightHand",
+    "jaw",
+    "leftEye",
+    "rightEye",
+]
+
+# Stub bone definitions for MB-Lab completion (AD-11.1)
+# MB-Lab lacks jaw, leftEye, rightEye — these are micro-stub bones
+STUB_BONE_DEFS: list[dict] = [
+    {
+        "vrm_name": "jaw",
+        "blender_name": "jaw",
+        "parent": "head",
+        "offset_from_head": (0.0, 0.0, -0.07),
+        "length": 0.005,
+    },
+    {
+        "vrm_name": "leftEye",
+        "blender_name": "leftEye",
+        "parent": "head",
+        "offset_from_head": (0.03, 0.04, 0.03),
+        "length": 0.005,
+    },
+    {
+        "vrm_name": "rightEye",
+        "blender_name": "rightEye",
+        "parent": "head",
+        "offset_from_head": (-0.03, 0.04, 0.03),
+        "length": 0.005,
+    },
+]
+
+# Canonical VRM 1.0 humanoid bone names (full list including optional finger bones)
 VRM_HUMANOID_BONES = [
     "hips",
     "leftUpperLeg",

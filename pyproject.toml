@@ -65,6 +65,11 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+markers = [
+    "blender: tests requiring Blender (bpy) to run",
+    "perf: performance tests (Pi 5 budget)",
+    "e2e: end-to-end tests (full build pipeline)",
+]
 
 [tool.mypy]
 python_version = "3.11"

@@ -67,21 +67,25 @@ MB_LAB_BONE_MAP: dict[str, str] = {
     "rightFoot": "foot_R",
     "rightToes": "toe_R",
 
-    # Eyes
-    "leftEye": "eye_L",
-    "rightEye": "eye_R",
+    # Eyes and jaw — stub bones from hamr.rigs.stub_bones (AD-11.1)
+    # MB-Lab doesn't generate these; stub_bones.create_missing_bones() adds them
+    "leftEye": "leftEye",
+    "rightEye": "rightEye",
     "jaw": "jaw",
 }
 
-# Required VRM 1.0 humanoid bones
+# Required VRM 1.0 humanoid bones (25 required for VRM 1.0 spec)
 VRM_REQUIRED_BONES = [
-    "hips", "spine", "chest", "neck", "head",
+    "hips", "spine", "chest", "upperChest", "neck", "head",
     "leftUpperLeg", "rightUpperLeg",
     "leftLowerLeg", "rightLowerLeg",
     "leftFoot", "rightFoot",
+    "leftToes", "rightToes",
+    "leftShoulder", "rightShoulder",
     "leftUpperArm", "rightUpperArm",
     "leftLowerArm", "rightLowerArm",
     "leftHand", "rightHand",
+    "jaw", "leftEye", "rightEye",
 ]
 
 
