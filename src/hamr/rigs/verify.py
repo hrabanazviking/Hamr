@@ -572,3 +572,128 @@ def cmd_verify_rig(spec_path: str) -> RigReport:
     # Print the report
     print(report.summary())
     return report
+
+
+def verify_vrm_rig(path: str) -> dict:
+    """Pure-Python VRM rig verification — reads a GLB/VRM file off disk.
+
+    Extracts bone names from the glTF JSON chunk and runs verify_bone_list
+    on them. Does NOT require Blender.
+
+    Args:
+        path: Path to a VRM or GLB file.
+
+    Returns:
+        Dict with keys:
+          - "valid": bool — True if all 25 VRM bones are present with no
+            hierarchy issues.
+          - "bones_found": int — number of VRM bones found.
+          - "bones_missing": list[str] — missing VRM bone names.
+          - "naming_issues": list[str] — naming convention problems.
+          - "quality_score": float — 0–1 quality score.
+          - "report": RigReport — the full report object.
+    """
+    import struct
+
+    vrm_path = Path(path)
+    if not vrm_path.exists():
+        raise FileNotFoundError(f"VRM file not found: {path}")
+
+    bone_names: list[str] = _extract_bone_names_from_glb(vrm_path)
+
+    if not bone_names:
+        # No bones found — return an invalid report
+        report = RigReport(
+            bones_found=0,
+            bones_missing=list(VRM_25_BONE_NAMES),
+            hierarchy_issues=["No bones found in file"],
+            naming_issues=[],
+            quality_score=0.0,
+        )
+        return {
+            "valid": False,
+            "bones_found": 0,
+            "bones_missing": list(VRM_25_BONE_NAMES),
+            "naming_issues": [],
+            "quality_score": 0.0,
+            "report": report,
+        }
+
+    report = verify_bone_list(bone_names)
+
+    return {
+        "valid": report.is_valid,
+        "bones_found": report.bones_found,
+        "bones_missing": report.bones_missing,
+        "naming_issues": report.naming_issues,
+        "quality_score": report.quality_score,
+        "report": report,
+    }
+
+
+def _extract_bone_names_from_glb(path: Path) -> list[str]:
+    """Extract bone (node) names from a GLB/VRM binary file.
+
+    Reads the JSON chunk of the glTF format and finds nodes referenced
+    by skin joints — these are the bones.
+
+    Args:
+        path: Path to a GLB/VRM file.
+
+    Returns:
+        List of bone names found in the file.
+    """
+    bone_names: list[str] = []
+
+    try:
+        with open(path, "rb") as f:
+            # Read the GLB header: magic (4) + version (4) + length (4)
+            magic = f.read(4)
+            if magic != b"glTF":
+                return []
+
+            _version = f.read(4)  # version
+            _total_length = f.read(4)  # total file length
+
+            # Read chunks until we find JSON
+            while True:
+                chunk_length_bytes = f.read(4)
+                if not chunk_length_bytes:
+                    break
+
+                chunk_length = int.from_bytes(chunk_length_bytes, "little")
+                chunk_type = f.read(4)
+
+                if chunk_type == b"JSON":
+                    json_data = f.read(chunk_length).decode("utf-8", errors="replace")
+                    gltf = json.loads(json_data)
+
+                    nodes = gltf.get("nodes", [])
+                    skins = gltf.get("skins", [])
+
+                    # Extract bone names from skin joints
+                    seen_joints = set()
+                    for skin in skins:
+                        for joint_idx in skin.get("joints", []):
+                            if 0 <= joint_idx < len(nodes) and joint_idx not in seen_joints:
+                                name = nodes[joint_idx].get("name", "")
+                                if name:
+                                    bone_names.append(name)
+                                seen_joints.add(joint_idx)
+
+                    # If no skins, try all nodes that look like bones
+                    if not bone_names:
+                        for node in nodes:
+                            name = node.get("name", "")
+                            if name and name[0].isupper():
+                                bone_names.append(name)
+
+                    break  # We only need the JSON chunk
+                else:
+                    # Skip binary chunk
+                    f.read(chunk_length)
+
+    except Exception:
+        pass
+
+    return bone_names

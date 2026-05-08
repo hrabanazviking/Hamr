@@ -2,10 +2,14 @@
 Hamr CLI — The forge's command-line interface.
 
 Usage:
-    hamr build spec.yaml --out output/
+    hamr build --spec spec.yaml                     # Build from spec file
+    hamr build --preset anime_girl_default           # Build from preset
+    hamr build --preset anime_girl_warrior --budget minimal
+    hamr build --spec spec.yaml --budget high --force-over-budget
     hamr validate spec.yaml
     hamr inspect output/avatar.vrm --targets VRCHAT
-    hamr list-presets
+    hamr list-presets [--what character|body|all]
+    hamr verify-rig avatar.vrm [--strict]
     hamr check-env
     hamr version
 """
@@ -19,74 +23,170 @@ from pathlib import Path
 
 from hamr.core.constants import BODY_PRESETS
 from hamr.core.errors import HamrError, SpecValidationError
+from hamr.core.presets import CHARACTER_PRESETS
 
 
 def cmd_build(args: argparse.Namespace) -> int:
-    """Build a character from a spec file."""
+    """Build a character from a spec file or preset."""
     from hamr.core.pipeline import BuildPipeline
     from hamr.core.spec import Spec
     from hamr.core.builder import _resolve_forges
+    from hamr.core.perf import MEMORY_TIERS, check_budget
+    from hamr.core.presets import CHARACTER_PRESETS, resolve_preset
+
+    # ── Resolve spec source: either --preset or spec file ──────────
+    if args.preset:
+        # Build from a named preset
+        if args.preset not in CHARACTER_PRESETS:
+            print(f"✗ Unknown preset: {args.preset!r}", file=sys.stderr)
+            print(f"  Available: {', '.join(sorted(CHARACTER_PRESETS.keys()))}",
+                  file=sys.stderr)
+            return 2
+
+        preset_data = resolve_preset(args.preset)
+        preset_info = CHARACTER_PRESETS[args.preset]
+        print(f"📐 Preset: {preset_info['display_name']}")
+        print(f"   {preset_info['description']}")
 
     # ── Dry-run mode: resolve spec and forges, no Blender ───────────
     if args.dry_run:
-        try:
-            spec = Spec.from_yaml(args.spec)
-            print(f"✓ Spec parsed: {spec.character.name}")
-        except SpecValidationError as e:
-            print(f"✗ Validation failed: {e}", file=sys.stderr)
+        spec_path = getattr(args, "spec", None)
+        if spec_path:
+            try:
+                spec = Spec.from_yaml(args.spec)
+                print(f"✓ Spec parsed: {spec.character.name}")
+            except SpecValidationError as e:
+                print(f"✗ Validation failed: {e}", file=sys.stderr)
+                return 2
+            except Exception as e:
+                print(f"✗ Spec parse error: {e}", file=sys.stderr)
+                return 2
+        elif args.preset:
+            spec_name = CHARACTER_PRESETS[args.preset]["spec"].get("name", args.preset)
+            print(f"✓ Preset resolved: {args.preset}")
+        else:
+            print("✗ Specify --spec or --preset", file=sys.stderr)
             return 2
 
-        forge_config = _resolve_forges(spec.character)
-        print("✓ Forges resolved:")
-        if forge_config.get("hair"):
-            h = forge_config["hair"]
-            print(f"  Hair: curl={h.get('curl_tightness', 0.0):.2f}, "
-                  f"volume={h.get('volume', 0.0):.2f}, "
-                  f"gradient={h.get('gradient_preset', '?')}, "
-                  f"shells={h.get('style_template', {}).get('shell_count', '?') if isinstance(h.get('style_template'), dict) else '?'}")
-        if forge_config.get("face"):
-            f = forge_config["face"]
-            n_keys = len(f.get("shape_keys", {}))
-            elf_factor = f.get("ear_elf_factor", "?")
-            lip_full = f.get("lip_fullness", "?")
-            print(f"  Face: {n_keys} shape keys, "
-                  f"elf_factor={elf_factor}, "
-                  f"lip_fullness={lip_full}")
-        if forge_config.get("clothing"):
-            c = forge_config["clothing"]
-            print(f"  Clothing: {len(c)} items")
-            for item in c:
-                name = item.get("name", "?") if isinstance(item, dict) else getattr(item, "name", "?")
-                ctype = item.get("cloth_type", "?") if isinstance(item, dict) else getattr(item, "cloth_type", "?")
-                mat = item.get("material_category", "?") if isinstance(item, dict) else getattr(item, "material_category", "?")
-                print(f"    - {name}: {ctype} ({mat})")
+        # Show forge resolution
+        if spec_path:
+            forge_config = _resolve_forges(spec.character)
+            print("✓ Forges resolved:")
+            if forge_config.get("hair"):
+                h = forge_config["hair"]
+                print(f"  Hair: curl={h.get('curl_tightness', 0.0):.2f}, "
+                      f"volume={h.get('volume', 0.0):.2f}, "
+                      f"gradient={h.get('gradient_preset', '?')}, "
+                      f"shells={h.get('style_template', {}).get('shell_count', '?') if isinstance(h.get('style_template'), dict) else '?'}")
+            if forge_config.get("face"):
+                f = forge_config["face"]
+                n_keys = len(f.get("shape_keys", {}))
+                elf_factor = f.get("ear_elf_factor", "?")
+                lip_full = f.get("lip_fullness", "?")
+                print(f"  Face: {n_keys} shape keys, "
+                      f"elf_factor={elf_factor}, "
+                      f"lip_fullness={lip_full}")
+            if forge_config.get("clothing"):
+                c = forge_config["clothing"]
+                print(f"  Clothing: {len(c)} items")
+                for item in c:
+                    name = item.get("name", "?") if isinstance(item, dict) else getattr(item, "name", "?")
+                    ctype = item.get("cloth_type", "?") if isinstance(item, dict) else getattr(item, "cloth_type", "?")
+                    mat = item.get("material_category", "?") if isinstance(item, dict) else getattr(item, "material_category", "?")
+                    print(f"    - {name}: {ctype} ({mat})")
 
-        if args.verbose:
-            print("\nVerbose forge config:")
-            for forge_name, config in forge_config.items():
-                print(f"  [{forge_name}]")
-                if hasattr(config, "to_dict"):
-                    for k, v in config.to_dict().items():
-                        print(f"    {k}: {v}")
-                elif isinstance(config, list):
-                    for i, item in enumerate(config):
-                        if hasattr(item, "to_dict"):
-                            print(f"    [{i}] {item.to_dict()}")
-                        else:
-                            print(f"    [{i}] {item}")
+        # Show budget summary in dry-run
+        budget = MEMORY_TIERS.get(args.budget, MEMORY_TIERS["balanced"])
+        print(f"\n💰 Budget tier: {args.budget}")
+        print(f"   Max triangles: {budget.max_triangles}")
+        print(f"   Max memory: {budget.max_memory_mb:.0f} MB")
+        print(f"   Max build time: {budget.max_build_time_seconds:.0f}s")
+        if args.force_over_budget:
+            print("   ⚠  Force-over-budget: budget check skipped")
+
         print("\n⚡ Dry run complete — no Blender launched.")
         return 0
 
     # ── Full build mode ─────────────────────────────────────────────
+    spec_path = getattr(args, "spec", None)
+
     pipeline = BuildPipeline(
         blender_path=args.blender_path,
         blender_timeout=args.timeout,
         keep_temp=args.keep_temp,
     )
 
+    # Determine performance budget tier
+    budget = MEMORY_TIERS.get(args.budget, MEMORY_TIERS["balanced"])
+
+    # If a preset is specified, resolve it and write a temp spec
+    if args.preset:
+        preset_data = resolve_preset(args.preset)
+        preset_info = CHARACTER_PRESETS[args.preset]
+        print(f"📐 Preset: {preset_info['display_name']}")
+        print(f"   {preset_info['description']}")
+
+        # We need a spec file path for the pipeline — if no spec is
+        # provided, write the preset data to a temp file
+        if not spec_path:
+            import tempfile
+            from hamr.core.models import CharacterSpec
+
+            # Build a CharacterSpec from the preset dict
+            char_spec = CharacterSpec.from_dict(preset_data)
+            safe_name = char_spec.name.replace(" ", "_").lower()
+
+            # Write preset to a temp YAML file
+            output_dir = Path(args.out)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            spec_path = str(output_dir / f".hamr_{safe_name}_preset.yaml")
+
+            # Write as YAML
+            try:
+                from hamr.core.spec import Spec
+                temp_spec = Spec(character=char_spec)
+                temp_spec.to_yaml(spec_path)
+            except Exception:
+                # Fallback: write as JSON which Spec.from_yaml can also parse
+                import yaml
+                # Build minimal YAML structure
+                yaml_data = {"character": preset_data}
+                with open(spec_path, "w") as f:
+                    yaml.dump(yaml_data, f, default_flow_style=False)
+
+    # Parse the spec and run budget check before launching Blender
+    if spec_path:
+        try:
+            spec_obj = Spec.from_yaml(spec_path)
+        except SpecValidationError as e:
+            print(f"✗ Validation failed: {e}", file=sys.stderr)
+            return 2
+        except Exception as e:
+            print(f"✗ Spec parse error: {e}", file=sys.stderr)
+            return 2
+
+        # ── Performance budget pre-flight check ─────────────────────
+        perf_report = check_budget(spec_obj.character, budget)
+        if not perf_report.within_budget and not args.force_over_budget:
+            print(f"\n{'=' * 60}", file=sys.stderr)
+            print("⚠  PERFORMANCE BUDGET CHECK FAILED", file=sys.stderr)
+            print(f"{'=' * 60}", file=sys.stderr)
+            print(perf_report.summary(), file=sys.stderr)
+            print(f"\n✗ Build exceeds {args.budget} budget tier. "
+                  "Use --force-over-budget to override.", file=sys.stderr)
+            return 3  # Exit code 3 = budget exceeded
+        elif not perf_report.within_budget and args.force_over_budget:
+            print("⚠  Performance budget exceeded — continuing due to --force-over-budget",
+                  file=sys.stderr)
+            print(perf_report.summary(), file=sys.stderr)
+        elif perf_report.warnings:
+            print("⚠  Performance budget warnings:")
+            for w in perf_report.warnings:
+                print(f"   {w}")
+
     try:
         result = pipeline.build(
-            spec_path=args.spec,
+            spec_path=spec_path or "",
             output_dir=args.out,
             format=args.format,
             base_mesh=args.base,
@@ -145,13 +245,54 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
 
 def cmd_list_presets(args: argparse.Namespace) -> int:
-    """List available body presets."""
-    print("Available body presets:")
-    print("-" * 40)
-    for name, proportions in BODY_PRESETS.items():
-        desc = ", ".join(f"{k}={v:.2f}" for k, v in proportions.items())
-        print(f"  {name:20s}  {desc}")
+    """List available presets (body + character)."""
+    from hamr.core.presets import CHARACTER_PRESETS
+
+    what = getattr(args, "what", "all")
+
+    if what in ("all", "character"):
+        print("Character presets:")
+        print("-" * 60)
+        for name, preset in CHARACTER_PRESETS.items():
+            print(f"  {name:30s}  {preset['display_name']}")
+            print(f"  {'':30s}  {preset['description']}")
+
+    if what in ("all", "body"):
+        if what == "all":
+            print()
+        print("Body presets:")
+        print("-" * 60)
+        for name, proportions in BODY_PRESETS.items():
+            desc = ", ".join(f"{k}={v:.2f}" for k, v in proportions.items())
+            print(f"  {name:20s}  {desc}")
+
     return 0
+
+
+def cmd_verify_rig(args: argparse.Namespace) -> int:
+    """Verify a VRM file's rig structure."""
+    from hamr.rigs.verify import verify_vrm_rig
+
+    vrm_path = args.path
+    try:
+        result = verify_vrm_rig(vrm_path)
+    except FileNotFoundError:
+        print(f"✗ File not found: {vrm_path}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"✗ Error reading file: {e}", file=sys.stderr)
+        return 1
+
+    report = result["report"]
+    print(report.summary())
+
+    valid = result["valid"]
+
+    if args.strict and result["naming_issues"]:
+        print("\n⚠  Strict mode: treating naming issues as errors")
+        valid = False
+
+    return 0 if valid else 1
 
 
 def cmd_check_env(args: argparse.Namespace) -> int:
@@ -195,12 +336,30 @@ def main() -> int:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # build
-    build_parser = subparsers.add_parser("build", help="Build a character from spec")
-    build_parser.add_argument("spec", help="Path to YAML spec file")
+    build_parser = subparsers.add_parser("build", help="Build a character from spec or preset")
+    build_parser.add_argument(
+        "spec", nargs="?", default=None,
+        help="Path to YAML spec file (optional if --preset is used)",
+    )
     build_parser.add_argument("--out", "-o", default="output/", help="Output directory")
     build_parser.add_argument("--format", "-f", default="vrm1", choices=["vrm1", "glb", "blend"])
     build_parser.add_argument("--base", "-b", default=None, help="Base mesh path (.vrm, .fbx, .glb)")
     build_parser.add_argument("--no-validate", action="store_true", help="Skip validation")
+    build_parser.add_argument(
+        "--preset", "-p", default=None,
+        choices=list(CHARACTER_PRESETS.keys()),
+        help="Apply a character preset before building",
+    )
+    build_parser.add_argument(
+        "--budget", "-B", default="balanced",
+        choices=["minimal", "balanced", "high"],
+        help="Performance budget tier (default: balanced)",
+    )
+    build_parser.add_argument(
+        "--force-over-budget",
+        action="store_true",
+        help="Force build even if spec exceeds performance budget",
+    )
     build_parser.add_argument("--dry-run", action="store_true", help="Resolve spec and forges without launching Blender")
     build_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output with forge details")
     build_parser.add_argument("--keep-temp", action="store_true", help="Keep temp files (debug)")
@@ -221,7 +380,26 @@ def main() -> int:
     inspect_parser.set_defaults(func=cmd_inspect)
 
     # list-presets
-    subparsers.add_parser("list-presets", help="List body presets").set_defaults(func=cmd_list_presets)
+    list_presets_parser = subparsers.add_parser("list-presets", help="List available presets")
+    list_presets_parser.add_argument(
+        "--what", "-w",
+        choices=["all", "character", "body"],
+        default="all",
+        help="Which presets to list: all, character, or body (default: all)",
+    )
+    list_presets_parser.set_defaults(func=cmd_list_presets)
+
+    # verify-rig
+    verify_rig_parser = subparsers.add_parser(
+        "verify-rig",
+        help="Verify VRM rig completeness and bone hierarchy",
+    )
+    verify_rig_parser.add_argument("path", help="Path to VRM file to verify")
+    verify_rig_parser.add_argument(
+        "--strict", action="store_true",
+        help="Treat naming issues as errors",
+    )
+    verify_rig_parser.set_defaults(func=cmd_verify_rig)
 
     # check-env
     subparsers.add_parser("check-env", help="Check build environment").set_defaults(func=cmd_check_env)
