@@ -327,6 +327,19 @@ def cmd_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_docs(args: argparse.Namespace) -> int:
+    """Generate documentation files."""
+    from hamr.docs.generate import generate_all
+
+    output_dir = getattr(args, "output", "docs")
+    try:
+        generate_all(output_dir=output_dir)
+    except Exception as e:
+        print(f"✗ Documentation generation failed: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -406,6 +419,13 @@ def main() -> int:
 
     # version
     subparsers.add_parser("version", help="Print version").set_defaults(func=cmd_version)
+
+    # docs generate
+    docs_parser = subparsers.add_parser("docs", help="Generate documentation")
+    docs_sub = docs_parser.add_subparsers(dest="docs_command", help="Documentation commands")
+    docs_gen = docs_sub.add_parser("generate", help="Generate all documentation files")
+    docs_gen.add_argument("--output", "-o", default="docs", help="Output directory for generated docs")
+    docs_gen.set_defaults(func=cmd_docs)
 
     args = parser.parse_args()
 
