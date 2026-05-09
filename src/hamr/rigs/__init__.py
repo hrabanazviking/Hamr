@@ -53,6 +53,18 @@ from hamr.rigs.collision import (
     compute_collision_mesh_summary,
     validate_collision_config,
 )
+from hamr.rigs.spring_tuning import (
+    SpringBoneParams,
+    SpringBoneGroup as SpringBoneParamsGroup,
+    SPRING_PRESETS,
+    validate_spring_params,
+    create_spring_group,
+    tune_spring_params,
+    blend_spring_params,
+    spring_params_to_vrm,
+    spring_group_to_vrm,
+    estimate_spring_energy,
+)
 from hamr.export.vrm import MB_LAB_BONE_MAP, VRM_REQUIRED_BONES
 from hamr.core.constants import VRM_25_BONE_NAMES
 
@@ -103,4 +115,15 @@ __all__ = [
     "generate_collider_list",
     "compute_collision_mesh_summary",
     "validate_collision_config",
+    # Spring tuning
+    "SpringBoneParams",
+    "SpringBoneParamsGroup",
+    "SPRING_PRESETS",
+    "validate_spring_params",
+    "create_spring_group",
+    "tune_spring_params",
+    "blend_spring_params",
+    "spring_params_to_vrm",
+    "spring_group_to_vrm",
+    "estimate_spring_energy",
 ]
