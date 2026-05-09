@@ -1,10 +1,48 @@
-# Release Notes — Hamr v0.7.0-rc1
+# Release Notes — Hamr v0.7.0
 
 **Release Date:** 2026-05-08  
-**Codename:** Gjallarhorn — *The Resounding Horn*
+**Codename:** Vápnatak — *The Taking Up of Arms*
 
-> Heimdallr blows the Gjallarhorn, and the final assembly is called.
-> Every subsystem stands together, ready for the world.
+> The host has assembled. Each weapon is hefted, tested, and found true.
+> Vápnatak verifies what Gjallarhorn announced. The blade rings clean.
+
+---
+
+## v0.7.0 — Phase 15: Vápnatak
+
+### Highlights
+
+- **E2E Blender Build Testing** — 60 end-to-end headless build tests proving the pipeline end-to-end
+- **GitHub Actions CI/CD** — Full lint → test → E2E pipeline on every push and PR
+- **Performance Regression Baselines** — 62 thresholds ensuring no performance degradation
+- **5 Preset Validation Fixes** — All preset failures ground smooth; deepcopy guards prevent shared mutability
+- **Release Artifact Pipeline** — Versioned wheels, sdist, SHA256SUMS/MD5SUMS on every tag push
+- **API Reference Generator** — Auto-generated markdown API docs from live code
+- **~1940 Tests, 0 Failures** — Full pipeline verified
+
+### New Modules
+
+| Module | Purpose |
+|--------|---------|
+| `hamr/blender_bridge/e2e.py` | End-to-end Blender headless build configuration and execution |
+| `hamr/core/regression.py` | Performance regression detection with GPU-profile baselines |
+| `hamr/core/release.py` | Release artifact management: wheels, checksums, manifests |
+| `hamr/docs/api_reference.py` | Auto-generated API reference from live module introspection |
+
+### Bug Fixes
+
+- **5 preset validation failures resolved** — deepcopy guard in `Spec.from_dict()`, immutable `get_preset()`, corrected hex colors, clamped out-of-range values, populated missing required fields
+- **Version assertions updated** throughout the test suite for v0.7.0
+- All previous 7 known preset warnings have been eliminated — **0 remaining**
+
+### CI/CD
+
+- `.github/workflows/ci.yml` — lint (ruff) → test (3.10/3.11/3.12) → coverage (≥80%) → benchmark
+- `.github/workflows/release.yml` — build wheel/sdist → check → publish to TestPyPI on tag push
+
+---
+
+## v0.7.0-rc1 — Phase 14: Gjallarhorn
 
 ---
 

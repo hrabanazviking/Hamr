@@ -14,8 +14,9 @@
 
 Linux-native · Headless-first · Agent-orchestrated · VRM 1.0
 
-[![Version](https://img.shields.io/badge/version-0.7.0rc1-blue)]()
-[![Tests](https://img.shields.io/badge/tests-1768%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-0.7.0-blue)]()
+[![Tests](https://img.shields.io/badge/tests-1940%20passing-brightgreen)]()
+[![CI](https://github.com/hrabanazviking/Hamr/actions/workflows/ci.yml/badge.svg?branch=Development)]()
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)]()
 [![Blender](https://img.shields.io/badge/blender-3.4%2B-orange)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)]()
@@ -52,8 +53,13 @@ No GUI. No Windows dependency. No closed-source lock-in.
 - **Animation Clips** — Idle breathe, weight shift, look around, walk cycle
 - **Accessibility-First CLI** — `--no-color`, `--quiet`, `--json` flags; actionable error suggestions
 - **Auto-Generated Docs** — CLI reference, architecture diagram, preset guide from live code
-- **A11y Compliance Checker** — `hamr docs audit` scans modules for docs, types, and accessibility
-- **1,768 Tests** — Every forge tested, every path validated
+- **E2E Blender Build Testing** — 60 headless end-to-end builds proving every preset
+- **GitHub Actions CI/CD** — lint → test → coverage → E2E on every push/PR
+- **Performance Regression Baselines** — 62 thresholds guarding against degradation
+- **Preset Validation Fixed** — All 5 remaining failures resolved; 0 failures total
+- **Release Artifact Pipeline** — Versioned wheels + checksums on tag push
+- **API Reference Generator** — Auto-generated markdown docs from live code
+- **~1,940 Tests** — Every forge tested, every path validated, 0 failures
 
 See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full changelog.
 
@@ -70,7 +76,7 @@ See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full changelog.
 - **Blender Headless** — Runs entirely in `blender --background`, no GUI required
 - **Agent-Orchestrated** — Designed for AI-driven creation pipelines
 - **Accessibility-First** — `--no-color`, `--json`, `--quiet` on every command
-- **1,768 Tests** — Every forge tested, every path validated
+- **~1,940 Tests** — Every forge tested, every path validated
 
 ## 🗡️ Quick Start
 

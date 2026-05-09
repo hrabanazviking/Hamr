@@ -5,6 +5,81 @@ All notable changes to Hamr will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-05-08
+
+### Added — Phase 15: Vápnatak (The Taking Up of Arms)
+
+#### T1: E2E Blender Build Testing
+- **`hamr/blender_bridge/e2e.py`** — End-to-end Blender headless build testing module
+  - `E2EBuildConfig` dataclass for build configuration
+  - `E2EBuildResult` dataclass for build outcome tracking
+  - `E2EStageValidator` for validating individual pipeline stages
+  - `generate_build_script()` for Blender subprocess script generation
+  - `execute_blender_build()` guarded behind subprocess calls
+  - 60 E2E tests covering all presets, bone paths, and weight-transfer variants
+
+#### T2: GitHub Actions CI/CD Pipeline
+- **`.github/workflows/ci.yml`** — Full CI workflow: lint → unit tests → integration tests → E2E headless builds
+  - Multi-Python matrix (3.10, 3.11, 3.12)
+  - Coverage enforcement (≥80%)
+  - Benchmark regression tests
+- **`.github/workflows/release.yml`** — Release artifact pipeline on tag push
+  - Versioned wheel and source distribution builds
+  - PyPI/TestPyPI publication via `twine`
+
+#### T3: Performance Regression Baselines
+- **`hamr/core/regression.py`** — Performance regression detection module
+  - `RegressionThreshold` dataclass for per-module timing thresholds
+  - `RegressionBaseline` for GPU-profile-aware baseline storage
+  - `RegressionReport` for pass/fail regression reports
+  - 62 regression baseline tests ensuring no Phase 1–14 performance regression
+
+#### T4: Remaining Preset Validation Fixes
+- Fixed 5 preset validation failures:
+  - Deep-copy guard in `Spec.from_dict()` prevents shared mutable defaults
+  - `PresetLoader.get_preset()` returns immutable deep copies
+  - Invalid hex color defaults corrected
+  - Out-of-range parameter values clamped
+  - Missing required fields populated with safe defaults
+- Version assertions updated throughout test suite
+
+#### T5: Release Artifact Pipeline
+- **`hamr/core/release.py`** — Release artifact management module
+  - `ArtifactInfo` dataclass for artifact metadata
+  - `ReleaseManifest` for checksum generation and verification
+  - `build_wheel()`, `build_sdist()` for distribution packaging
+  - `compute_sha256()`, `compute_md5()` for file integrity
+  - `generate_manifest()` for SHA256SUMS/MD5SUMS manifests
+  - 25 release pipeline tests
+
+#### T6: Documentation Hardening & Changelog
+- **`hamr/docs/api_reference.py`** — Auto-generated API reference module
+  - `APIEntry` dataclass: module, name, type, docstring, signature
+  - `collect_api_entries()` walks a module and collects all public callables
+  - `format_signature()` formats function signatures as strings
+  - `generate_api_reference()` produces markdown API reference for all hamr.* modules
+- CHANGELOG.md, RELEASE_NOTES.md, README.md updated for v0.7.0
+- GitHub Actions CI badge added to README
+- Internal doc links validated — no broken references
+- Test count updated to ~1940
+
+### Tests Added (Phase 15)
+- `tests/test_e2e_build.py` — 60 E2E Blender build tests
+- `tests/test_e2e_suite.py` — E2E suite runner
+- `tests/test_regression_baseline.py` — 62 regression baseline tests
+- `tests/test_release.py` — 25 release artifact pipeline tests
+- `tests/test_api_reference.py` — API reference generator tests
+- `tests/test_benchmark.py` — benchmark regression tests
+- `tests/test_blender_compat.py` — Blender compatibility tests
+
+**Total: ~1940 tests passing, 0 failures**
+
+### Changed
+- `src/hamr/__init__.py` — Version bumped to 0.7.0
+- `pyproject.toml` — Version bumped to 0.7.0
+- `src/hamr/core/spec.py` — Deep-copy guard in `from_dict()`
+- `src/hamr/core/presets.py` — Immutable deep copies from `get_preset()`
+
 ## [0.7.0rc1] - 2026-05-08
 
 ### Added — Phase 14: Gjallarhorn (The Resounding Horn — Release Candidate)

@@ -1,7 +1,7 @@
-# Migration Guide — Hamr v0.3.0 → v0.7.0-rc1
+# Migration Guide — Hamr v0.3.0 → v0.7.0
 
 This guide covers all API, configuration, and behavioral changes introduced
-between v0.3.0 (Phase 4) and v0.7.0-rc1 (Phase 14).
+between v0.3.0 (Phase 4) and v0.7.0 (Phase 15).
 
 ---
 
@@ -69,6 +69,10 @@ The following modules were introduced in Phases 11–14:
 | `hamr.export.vrm_validator` | `VRMValidator` | v0.6.0 |
 | `hamr.export.animation_clips` | `AnimationForge` | v0.6.0 |
 | `hamr.docs.generate` | `DocGenerator` | v0.6.0 |
+| `hamr.core.regression` | `RegressionThreshold`, `RegressionBaseline` | v0.7.0 |
+| `hamr.core.release` | `ArtifactInfo`, `ReleaseManifest` | v0.7.0 |
+| `hamr.blender_bridge.e2e` | `E2EBuildConfig`, `E2EBuildResult` | v0.7.0 |
+| `hamr.docs.api_reference` | `APIEntry`, `generate_api_reference()` | v0.7.0 |
 
 ### 1.3 Renamed / Moved Functions
 
@@ -152,6 +156,24 @@ Presets (in `assets/presets/`) now support:
 - **Blender dependency** unchanged — `bpy` is not pip-installable; core library
   works without it
 - **pytest markers:** `blender`, `slow`, `benchmark`, `perf`, `e2e` available
+
+### 5.2 CI/CD (v0.7.0)
+
+- **GitHub Actions** — `.github/workflows/ci.yml` runs lint, test, coverage, and benchmark on every push/PR
+- **Release workflow** — `.github/workflows/release.yml` builds wheel/sdist and publishes to TestPyPI on tag push
+- **Branch protection** — `Development` and `Main` branches require passing CI
+
+### 5.3 API Reference (v0.7.0)
+
+```python
+from hamr.docs.api_reference import generate_api_reference
+
+# Generate markdown API reference for all hamr.* modules
+md = generate_api_reference()
+
+# Or specify specific modules
+md = generate_api_reference(["hamr.core", "hamr.rigs"])
+```
 
 ---
 

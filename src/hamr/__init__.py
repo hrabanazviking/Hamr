@@ -17,7 +17,7 @@ Modules:
     rigs        — Rig mapping reference
 """
 
-__version__ = "0.7.0rc1"
+__version__ = "0.7.0"
 __author__ = "Volmarr & Runa — hrabanazviking"
 
 from hamr.core.spec import Spec
