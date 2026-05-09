@@ -12,6 +12,27 @@ from __future__ import annotations
 
 import pytest
 
+
+# ── Custom markers ──────────────────────────────────────────────────────────
+
+def pytest_configure(config):
+    """Register custom pytest markers."""
+    config.addinivalue_line(
+        "markers", "blender: marks tests as requiring Blender (skip in CI)"
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip Blender-dependent tests if Blender is not available."""
+    import os
+    skip_blender = pytest.mark.skip(
+        reason="Blender not available — set RUN_BLENDER=1 to enable"
+    )
+    run_blender = os.environ.get("RUN_BLENDER", "").strip() in ("1", "true", "yes")
+    for item in items:
+        if "blender" in item.keywords and not run_blender:
+            item.add_marker(skip_blender)
+
 from hamr.core.models import (
     CharacterSpec,
     BodySpec,
