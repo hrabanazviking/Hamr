@@ -30,15 +30,35 @@ from hamr.core.models import (
 
 # ── Spec-to-Dict Helper ─────────────────────────────────────────────────────
 
+def _normalize_value(value):
+    """Recursively convert dataclass instances within a dict to plain dicts."""
+    if hasattr(value, "to_dict"):
+        return value.to_dict()
+    try:
+        from dataclasses import is_dataclass
+        if is_dataclass(value) and not isinstance(value, type):
+            return asdict(value)
+    except Exception:
+        pass
+    if isinstance(value, dict):
+        return {k: _normalize_value(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_normalize_value(v) for v in value]
+    return value
+
+
 def spec_to_dict(spec: dict | CharacterSpec) -> dict:
     """Recursively convert a CharacterSpec (or nested dataclass) to a plain dict.
 
-    Accepts either a plain dict (returned as-is) or a CharacterSpec
+    Accepts either a plain dict (returned as a *deep copy* with any nested
+    dataclass instances normalized to plain dicts) or a CharacterSpec
     dataclass instance (converted via ``asdict()`` or ``.to_dict()``).
 
     This normalization layer lets ``validate_preset()`` and downstream
     consumers always work on plain dicts regardless of whether the
-    caller provides a CharacterSpec or a raw spec dict.
+    caller provides a CharacterSpec or a raw spec dict — even if that
+    dict has been contaminated with dataclass instances from a previous
+    ``CharacterSpec.from_dict()`` call.
 
     Args:
         spec: A CharacterSpec dataclass instance or a plain dict.
@@ -47,7 +67,7 @@ def spec_to_dict(spec: dict | CharacterSpec) -> dict:
         A plain dict suitable for dict-style access and mutation.
     """
     if isinstance(spec, dict):
-        return spec
+        return _normalize_value(spec)
     if hasattr(spec, "to_dict"):
         return spec.to_dict()
     # Fallback: dataclass → asdict
@@ -543,6 +563,10 @@ class CharacterPreset:
 def get_preset(name: str) -> CharacterPreset:
     """Look up a preset by internal name.
 
+    Returns a :class:`CharacterPreset` whose ``.spec`` is always a plain
+    dict — never a dataclass.  Callers may freely mutate the returned
+    spec without affecting the global CHARACTER_PRESETS store.
+
     Raises:
         KeyError: If no preset exists with the given name.
     """
@@ -550,11 +574,14 @@ def get_preset(name: str) -> CharacterPreset:
         raise KeyError(f"Unknown character preset: {name!r}. "
                        f"Available: {', '.join(sorted(CHARACTER_PRESETS))}")
     entry = CHARACTER_PRESETS[name]
+    # spec_to_dict recursively normalizes any nested dataclass instances
+    # to plain dicts and returns a fresh copy — callers can mutate freely.
+    spec = spec_to_dict(entry["spec"])
     return CharacterPreset(
         name=entry["name"],
         display_name=entry["display_name"],
         description=entry["description"],
-        spec=deepcopy(entry["spec"]),
+        spec=spec,
     )
 
 
@@ -569,7 +596,12 @@ def deep_merge(base: dict, override: dict) -> dict:
     - Dicts are merged recursively.
     - Other types (including lists) are simply replaced by the override value.
     - Returns a new dict; neither input is mutated.
+    - Dataclass instances are converted to plain dicts before merging.
     """
+    # Normalize any dataclass objects to plain dicts so item-assignment works.
+    base = spec_to_dict(base) if not isinstance(base, dict) else base
+    override = spec_to_dict(override) if not isinstance(override, dict) else override
+
     result = deepcopy(base)
     for key, value in override.items():
         if (
@@ -589,11 +621,16 @@ def resolve_preset(name: str, overrides: dict | None = None) -> dict:
     If *overrides* is None or empty, returns a deep copy of the base preset spec.
     Otherwise, *overrides* is deep-merged into the base spec, allowing partial
     overrides like ``{"body": {"height_cm": 170.0}}``.
+
+    The result is always a plain dict — nested dataclass objects are never
+    included, so callers can freely use dict item-assignment.
     """
     base = get_preset(name).spec
     if not overrides:
         return base
-    return deep_merge(base, overrides)
+    result = deep_merge(base, overrides)
+    # Normalize to guarantee no nested dataclass objects remain.
+    return spec_to_dict(result)
 
 
 def sanitize_preset(name_or_dict: str | dict) -> dict:

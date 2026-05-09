@@ -23,7 +23,10 @@ class TestPresetToDictRoundtrip:
         from hamr.core.presets import spec_to_dict
         original = {"body": {"height": 1.6}, "face": {}}
         result = spec_to_dict(original)
-        assert result is original, "spec_to_dict should pass dicts through unchanged"
+        # spec_to_dict returns an equivalent plain dict (may be a new object
+        # if normalization was needed).  Value equality is the guarantee.
+        assert result == original, "spec_to_dict should preserve dict contents"
+        assert isinstance(result, dict), "spec_to_dict should return a dict"
 
     def test_validate_preset_accepts_dict(self):
         from hamr.core.presets import validate_preset, CHARACTER_PRESETS
@@ -283,3 +286,91 @@ class TestVersionConsistency:
         import re
         pep440_re = re.compile(r"^\d+\.\d+\.\d+([a-zA-Z]+\d+)?$")
         assert pep440_re.match(__version__), f"Version {__version__} is not valid PEP 440"
+
+
+# ── T1 Phase 15: from_dict() Immutability & get_preset() Isolation ────────
+
+class TestFromDictImmutability:
+    """CharacterSpec.from_dict() must NOT mutate its input dict (Phase 15 T1)."""
+
+    def test_from_dict_does_not_mutate_input(self):
+        from hamr.core.models import CharacterSpec
+        original = {
+            "name": "test",
+            "body": {"height_cm": 165.0, "build": "athletic",
+                      "skin": {"base_hex": "#E8B87A", "undertone": "warm"}},
+            "face": {"jaw": "V-shape", "cheekbones": "high",
+                     "eyes": {"iris_hex": "#B8D4E3", "shape": "round", "size": 1.1}},
+            "hair": {"style": "straight", "length": "long", "volume": 0.7,
+                     "curl_tightness": 0.0,
+                     "color": {"roots": "#C4A265", "mid": "#D4B87A", "tips": "#F5E6B8"}},
+        }
+        from copy import deepcopy
+        snapshot = deepcopy(original)
+        CharacterSpec.from_dict(original)
+        assert original == snapshot, "from_dict() must not mutate its input dict"
+
+    def test_from_dict_called_twice_produces_identical_results(self):
+        from hamr.core.models import CharacterSpec
+        data = {
+            "name": "test2",
+            "body": {"height_cm": 170.0, "build": "slender",
+                      "skin": {"base_hex": "#F0E0D0", "undertone": "cool"}},
+            "face": {"eyes": {"iris_hex": "#6080C0", "shape": "narrow", "size": 1.15}},
+        }
+        result1 = CharacterSpec.from_dict(data)
+        result2 = CharacterSpec.from_dict(data)
+        assert result1 == result2, "Calling from_dict() twice on same input must produce equal results"
+
+    def test_from_dict_no_input_mutation_nested(self):
+        """Verify nested dicts stay as dicts, not dataclass instances."""
+        from hamr.core.models import CharacterSpec
+        data = {
+            "body": {"height_cm": 160.0, "build": "average",
+                      "skin": {"base_hex": "#F5D6C3", "undertone": "warm", "freckles": False, "tan_level": 0.4}},
+            "face": {"jaw": "round", "eyes": {"iris_hex": "#C090E0", "shape": "round", "size": 1.6}},
+            "hair": {"style": "wavy", "length": "shoulder", "volume": 0.9,
+                     "color": {"roots": "#E0A0C0", "mid": "#F0C0D8", "tips": "#F8E0F0"}},
+        }
+        original_eyes_type = type(data["face"]["eyes"])
+        CharacterSpec.from_dict(data)
+        assert type(data["face"]["eyes"]) is original_eyes_type, \
+            "from_dict() must not convert nested dicts to dataclasses in the input"
+
+
+class TestGetPresetIsolation:
+    """get_preset() must return independent copies; mutations must not poison globals (Phase 15 T1)."""
+
+    def test_get_preset_returns_independent_copy(self):
+        from hamr.core.presets import get_preset, CHARACTER_PRESETS
+        p1 = get_preset("anime_girl_default")
+        p2 = get_preset("anime_girl_default")
+        assert p1.spec == p2.spec, "Two get_preset calls should return equal specs"
+        assert p1.spec is not p2.spec, "Two get_preset calls should return different objects"
+
+    def test_mutating_returned_spec_does_not_affect_global(self):
+        from hamr.core.presets import get_preset, CHARACTER_PRESETS
+        original_style = CHARACTER_PRESETS["anime_girl_default"]["spec"]["hair"]["style"]
+        result = get_preset("anime_girl_default")
+        result.spec["hair"]["style"] = "MODIFIED"
+        assert CHARACTER_PRESETS["anime_girl_default"]["spec"]["hair"]["style"] == original_style, \
+            "Mutating a returned spec must not change the global CHARACTER_PRESETS"
+
+    def test_spec_dict_item_assignment_works(self):
+        """Verify that dict-style item assignment works on returned specs."""
+        from hamr.core.presets import get_preset
+        spec = get_preset("chibi_cute").spec
+        # These must NOT raise TypeError
+        spec["face"]["eyes"]["size"] = 5.0
+        assert spec["face"]["eyes"]["size"] == 5.0
+        spec["body"]["skin"]["tan_level"] = 0.99
+        assert spec["body"]["skin"]["tan_level"] == 0.99
+        spec["hair"]["color"]["roots"] = "#FF0000"
+        assert spec["hair"]["color"]["roots"] == "#FF0000"
+
+    def test_resolve_preset_returns_mutable_dict(self):
+        """resolve_preset() must return a plain dict supporting item assignment."""
+        from hamr.core.presets import resolve_preset
+        result = resolve_preset("chibi_cute")
+        result["face"]["eyes"]["size"] = 5.0
+        assert result["face"]["eyes"]["size"] == 5.0

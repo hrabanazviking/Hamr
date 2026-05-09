@@ -7,6 +7,7 @@ The spec IS the character.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 from typing import Optional
@@ -73,6 +74,7 @@ class BodySpec:
 
     @classmethod
     def from_dict(cls, data: dict) -> BodySpec:
+        data = copy.deepcopy(data)
         if "skin" in data and isinstance(data["skin"], dict):
             data["skin"] = SkinSpec.from_dict(data["skin"])
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
@@ -108,6 +110,7 @@ class FaceSpec:
 
     @classmethod
     def from_dict(cls, data: dict) -> FaceSpec:
+        data = copy.deepcopy(data)
         if "eyes" in data and isinstance(data["eyes"], dict):
             data["eyes"] = EyeSpec.from_dict(data["eyes"])
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
@@ -142,6 +145,7 @@ class HairSpec:
 
     @classmethod
     def from_dict(cls, data: dict) -> HairSpec:
+        data = copy.deepcopy(data)
         if "color" in data and isinstance(data["color"], dict):
             data["color"] = HairColorSpec.from_dict(data["color"])
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
@@ -199,6 +203,7 @@ class ExpressionSpec:
 
     @classmethod
     def from_dict(cls, data: dict) -> ExpressionSpec:
+        data = copy.deepcopy(data)
         if "custom" in data and isinstance(data["custom"], list):
             data["custom"] = [
                 CustomExpressionSpec.from_dict(e) if isinstance(e, dict) else e
@@ -230,6 +235,7 @@ class PhysicsSpec:
 
     @classmethod
     def from_dict(cls, data: dict) -> PhysicsSpec:
+        data = copy.deepcopy(data)
         if "hair" in data and isinstance(data["hair"], dict):
             data["hair"] = HairPhysicsSpec(**data["hair"])
         if "breast" in data and isinstance(data["breast"], dict):
@@ -274,7 +280,13 @@ class CharacterSpec:
 
     @classmethod
     def from_dict(cls, data: dict) -> CharacterSpec:
-        """Parse a CharacterSpec from a raw dictionary (e.g., from YAML)."""
+        """Parse a CharacterSpec from a raw dictionary (e.g., from YAML).
+
+        The input dict is **never** mutated — a deep copy is made before
+        any in-place transformation, so callers can safely pass a reference
+        to a shared global (e.g. CHARACTER_PRESETS entries).
+        """
+        data = copy.deepcopy(data)
         fields = {}
         field_map = {
             "body": (BodySpec, {}),
