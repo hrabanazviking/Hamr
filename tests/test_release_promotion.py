@@ -60,12 +60,12 @@ class TestPromotionResult:
             PromotionCheck("b", True, "also ok"),
         ]
         result = PromotionResult(
-            version="0.7.0",
+            version="0.8.0",
             checks=checks,
             ready=True,
             summary="All checks passed",
         )
-        assert result.version == "0.7.0"
+        assert result.version == "0.8.0"
         assert len(result.checks) == 2
         assert result.ready is True
 
@@ -75,7 +75,7 @@ class TestPromotionResult:
             PromotionCheck("b", False, "mismatch"),
         ]
         result = PromotionResult(
-            version="0.7.0",
+            version="0.8.0",
             checks=checks,
             ready=False,
             summary="1/2 checks failed",
@@ -83,7 +83,7 @@ class TestPromotionResult:
         assert result.ready is False
 
     def test_default_values(self):
-        result = PromotionResult(version="0.7.0")
+        result = PromotionResult(version="0.8.0")
         assert result.checks == []
         assert result.ready is False
         assert result.summary == ""
@@ -97,7 +97,7 @@ class TestCheckVersionConsistency:
     def test_passes_with_consistent_version(self):
         result = check_version_consistency()
         assert result.passed is True, f"Version consistency failed: {result.message}"
-        assert "0.7.0" in result.message
+        assert "0.8.0" in result.message
 
     def test_returns_promotion_check(self):
         result = check_version_consistency()
@@ -178,7 +178,7 @@ class TestRunPromotionChecks:
 
     def test_result_has_version(self):
         result = run_promotion_checks()
-        assert result.version == "0.7.0"
+        assert result.version == "0.8.0"
 
     def test_result_has_checks(self):
         result = run_promotion_checks()
@@ -212,24 +212,24 @@ class TestFormatPromotionReport:
 
     def test_produces_readable_output(self):
         result = PromotionResult(
-            version="0.7.0",
+            version="0.8.0",
             checks=[
-                PromotionCheck("version_consistency", True, "All files agree on version 0.7.0"),
+                PromotionCheck("version_consistency", True, "All files agree on version 0.8.0"),
                 PromotionCheck("test_count", True, "1993 tests collected (≥1900)"),
                 PromotionCheck("docs_complete", True, "All 5 required docs present"),
             ],
             ready=True,
-            summary="✓ All 3 checks passed — release 0.7.0 is ready",
+            summary="✓ All 3 checks passed — release 0.8.0 is ready",
         )
         report = format_promotion_report(result)
         assert "Release Promotion Report" in report
-        assert "0.7.0" in report
+        assert "0.8.0" in report
         assert "✓ PASS" in report
         assert "version_consistency" in report
 
     def test_report_with_failure(self):
         result = PromotionResult(
-            version="0.7.0",
+            version="0.8.0",
             checks=[
                 PromotionCheck("version_consistency", True, "All files agree"),
                 PromotionCheck("ci_configured", False, "ci.yml not found"),
@@ -242,15 +242,15 @@ class TestFormatPromotionReport:
         assert "ci_configured" in report
 
     def test_empty_checks(self):
-        result = PromotionResult(version="0.7.0", checks=[], ready=True, summary="No checks defined")
+        result = PromotionResult(version="0.8.0", checks=[], ready=True, summary="No checks defined")
         report = format_promotion_report(result)
-        assert "0.7.0" in report
+        assert "0.8.0" in report
 
     def test_real_promotion_report(self):
         result = run_promotion_checks()
         report = format_promotion_report(result)
         assert "Release Promotion Report" in report
-        assert "0.7.0" in report
+        assert "0.8.0" in report
 
 
 # ── Version mismatch detection ─────────────────────────────────────────────
@@ -268,15 +268,15 @@ class TestVersionMismatchDetection:
         src_dir = fake_root / "src" / "hamr"
         src_dir.mkdir(parents=True)
 
-        # __init__.py with version 0.7.0
-        (src_dir / "__init__.py").write_text('__version__ = "0.7.0"\n')
+        # __init__.py with version 0.8.0
+        (src_dir / "__init__.py").write_text('__version__ = "0.8.0"\n')
 
         # pyproject.toml with DIFFERENT version
         (fake_root / "pyproject.toml").write_text(
             '[project]\nname = "hamr"\nversion = "0.8.0"\n'
         )
 
-        # CHANGELOG.md with 0.7.0
+        # CHANGELOG.md with 0.8.0
         (fake_root / "CHANGELOG.md").write_text(
             "# Changelog\n\n## [0.7.0] - 2026-05-08\n\n### Added\n- Stuff\n"
         )
@@ -297,9 +297,9 @@ class TestVersionMismatchDetection:
         src_dir = fake_root / "src" / "hamr"
         src_dir.mkdir(parents=True)
 
-        (src_dir / "__init__.py").write_text('__version__ = "0.7.0"\n')
+        (src_dir / "__init__.py").write_text('__version__ = "0.8.0"\n')
         (fake_root / "pyproject.toml").write_text(
-            '[project]\nname = "hamr"\nversion = "0.7.0"\n'
+            '[project]\nname = "hamr"\nversion = "0.8.0"\n'
         )
         (fake_root / "CHANGELOG.md").write_text(
             "# Changelog\n\n## [0.6.0] - 2026-04-01\n\n### Added\n- Old stuff\n"
@@ -320,16 +320,16 @@ class TestVersionMismatchDetection:
         src_dir = fake_root / "src" / "hamr"
         src_dir.mkdir(parents=True)
 
-        (src_dir / "__init__.py").write_text('__version__ = "0.7.0"\n')
+        (src_dir / "__init__.py").write_text('__version__ = "0.8.0"\n')
         (fake_root / "pyproject.toml").write_text(
-            '[project]\nname = "hamr"\nversion = "0.7.0"\n'
+            '[project]\nname = "hamr"\nversion = "0.8.0"\n'
         )
         (fake_root / "CHANGELOG.md").write_text(
-            "# Changelog\n\n## [0.7.0] - 2026-05-08\n\n### Added\n- New stuff\n"
+            "# Changelog\n\n## [0.8.0] - 2026-05-08\n\n### Added\n- New stuff\n"
         )
 
         monkeypatch.setattr(rp, "PROJECT_ROOT", fake_root)
 
         result = rp.check_version_consistency()
         assert result.passed is True
-        assert "0.7.0" in result.message
+        assert "0.8.0" in result.message

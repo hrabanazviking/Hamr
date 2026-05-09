@@ -332,7 +332,7 @@ class TestCLIEndToEnd:
         """hamr version prints version string."""
         import hamr
         version = hamr.__version__
-        assert version == "0.7.0"
+        assert version == "0.8.0"
 
     def test_hamr_list_presets(self):
         """hamr list-presets returns all body presets."""

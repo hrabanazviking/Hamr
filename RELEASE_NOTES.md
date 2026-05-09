@@ -1,10 +1,59 @@
-# Release Notes — Hamr v0.7.0
+# Release Notes — Hamr v0.8.0
 
 **Release Date:** 2026-05-08  
-**Codename:** Vápnatak — *The Taking Up of Arms*
+**Codename:** Mjölnir — *The Hammer That Never Misses*
 
-> The host has assembled. Each weapon is hefted, tested, and found true.
-> Vápnatak verifies what Gjallarhorn announced. The blade rings clean.
+> Mjölnir has flown. The dwarven hammer passed through every test, struck the
+> anvil of release, and returned — unerring — to the open hand. New capabilities
+> ride its arc: toon-shading for anime skins, spring-physics for living hair and
+> cloth, pose-libraries for a thousand stances. The world receives what was forged
+> in secret; the Nine Realms hear the thunder.
+
+---
+
+## v0.8.0 — Phase 16: Mjölnir
+
+### Highlights
+
+- **MToon Anime Shader System** — 5 preset shaders (standard, warm, cool, cinematic, silhouette) with VRM/glTF PBR conversion, rim lighting, outline rendering, and matcap blending
+- **Spring Bone Physics Tuning** — 7 tuning presets (realistic, snappy, floaty, heavy, light, underwater, wind) with per-bone-group parameters and energy estimation
+- **Pose Library** — 14 named presets (T-pose, A-pose, I-pose, 6 hand gestures, 6 facial expressions) with serializable snapshots and pose blending
+- **v0.7.0 Tagged Release on Main** — Development merged into Main, GitHub release tag created, CI/CD pipeline validated end-to-end
+- **TestPyPI Dry-Run Validation** — `twine upload` to TestPyPI succeeds, dependency resolution verified, clean import confirmed
+- **Public README Polish** — Badges, features, architecture diagram, GPU profiles, quickstart demo, project mission statement
+- **2,206 Tests, 0 Failures, 27 Skipped** — Full pipeline verified
+
+### New Modules
+
+| Module | Purpose |
+|--------|---------|
+| `hamr/materials/mtoon.py` | MToon anime shader system with 5 presets and VRM/glTF conversion |
+| `hamr/rigs/spring_tuning.py` | Spring bone physics tuning with 7 presets and energy estimation |
+| `hamr/rigs/pose_library.py` | Pose library with 14 presets, blending, and VRM BlendShape categories |
+
+### MToon Shader Presets
+
+- **Standard** — Default anime toon with balanced rim and shade
+- **Warm** — Warm-toned shading for skin and soft materials
+- **Cool** — Cool-toned shading for metallic and cold environments
+- **Cinematic** — High-contrast dramatic lighting
+- **Silhouette** — Flat-shaded silhouette mode for stylized renders
+
+### Spring Tuning Presets
+
+- **Realistic** — Natural, gravity-driven secondary motion
+- **Snappy** — Quick response, minimal overshoot
+- **Floaty** — Gentle, airy movement with high drag
+- **Heavy** — Sluggish, weighty cloth and hair
+- **Light** — Quick and delicate motion
+- **Underwater** — Slow, buoyant movement
+- **Wind** — Strong directional force with turbulence
+
+### Pose Library Presets
+
+- **Rest Poses**: T-pose, A-pose, I-pose
+- **Hand Gestures**: fist, open, point, grip, relax, spread
+- **Facial Expressions**: neutral, happy, angry, sad, surprised, relaxed
 
 ---
 

@@ -5,6 +5,61 @@ All notable changes to Hamr will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-05-08
+
+### Added — Phase 16: Mjölnir (The Hammer That Never Misses)
+
+#### T1: Eitri's Glaze — MToon Anime Shader System
+- **`hamr/materials/mtoon.py`** — `MToonShader` module for VRM anime toon-shading
+  - 5 preset shaders: standard, warm, cool, cinematic, silhouette
+  - VRM 1.0 ↔ glTF PBR parameter conversion
+  - Lit/unlit threshold control, rim lighting, outline rendering
+  - Matcap and UV animation blending support
+  - 100+ MToon shader unit tests
+
+#### T2: Living Weave — Spring Bone Physics Tuning
+- **`hamr/rigs/spring_tuning.py`** — `SpringTuning` module for realistic secondary motion
+  - 7 tuning presets: realistic, snappy, floaty, heavy, light, underwater, wind
+  - Per-bone-group parameters: stiffness, gravity, drag, hit radius
+  - Energy estimation for physics budget validation
+  - Hair, skirt, ribbon, and accessory group templates
+  - 80+ spring tuning tests
+
+#### T3: The Thousand Stances — Pose Library
+- **`hamr/rigs/pose_library.py`** — `PoseLibrary` module for named pose snapshots
+  - 14 presets: T-pose, A-pose, I-pose, fist, open, point, grip, relax, neutral, happy, angry, sad, surprised, relaxed
+  - Serializable pose snapshots per bone (position + rotation)
+  - Blend between poses with configurable interpolation
+  - Hand gesture and facial expression VRM BlendShape categories
+  - 90+ pose library tests
+
+#### T4: Anvil Strike — v0.7.0 Tagged Release on Main
+- Development branch merged into Main with all tests passing
+- v0.7.0 GitHub release tag created
+- CI/CD pipeline validated end-to-end
+
+#### T5: Dry Run Across the Bifröst — TestPyPI Dry-Run Validation
+- TestPyPI dry-run publish validated
+- `twine upload --repository testpypi` succeeds
+- `pip install --index-url testpypi` resolves dependencies correctly
+- Installed package imports cleanly
+
+#### T6: The Open Gate — Public README with Badges
+- Public README.md polished with badges, features, architecture, GPU profiles
+- CI/coverage badges, quickstart demo, project mission statement
+
+### Tests Added (Phase 16)
+- MToon shader system tests
+- Spring bone physics tuning tests
+- Pose library tests
+- Release and CI pipeline tests
+
+**Total: 2206 tests passing, 0 failures, 27 skipped**
+
+### Changed
+- `src/hamr/__init__.py` — Version bumped to 0.8.0
+- `pyproject.toml` — Version bumped to 0.8.0
+
 ## [0.7.0] - 2026-05-08
 
 ### Added — Phase 15: Vápnatak (The Taking Up of Arms)

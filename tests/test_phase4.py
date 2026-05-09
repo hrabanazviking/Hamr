@@ -139,7 +139,7 @@ class TestCLI:
         result = cmd_version(args)
         assert result == 0
         captured = capsys.readouterr()
-        assert "0.7.0" in captured.out
+        assert "0.8.0" in captured.out
         assert "Shape-Skin Engine" in captured.out
 
     def test_cli_list_presets(self, capsys):
