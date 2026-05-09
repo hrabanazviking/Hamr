@@ -18,7 +18,7 @@
 - **5 Preset Validation Fixes** — All preset failures ground smooth; deepcopy guards prevent shared mutability
 - **Release Artifact Pipeline** — Versioned wheels, sdist, SHA256SUMS/MD5SUMS on every tag push
 - **API Reference Generator** — Auto-generated markdown API docs from live code
-- **~1940 Tests, 0 Failures** — Full pipeline verified
+- **~2,206 Tests, 0 Failures** — Full pipeline verified
 
 ### New Modules
 

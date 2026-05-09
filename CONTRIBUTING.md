@@ -16,7 +16,7 @@ This document covers everything you need to get started.
 ### Clone & Install
 
 ```bash
-git clone https://github.com/VolmarrShield/Hamr.git
+git clone https://github.com/hrabanazviking/Hamr.git
 cd Hamr
 git checkout Development
 pip install -e ".[dev]"
@@ -144,7 +144,7 @@ Before submitting a pull request, verify:
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/VolmarrShield/Hamr/issues)
+- Use [GitHub Issues](https://github.com/hrabanazviking/Hamr/issues)
 - Include: Hamr version (`hamr version`), Python version, OS, Blender version
   (if applicable), minimal reproduction steps
 

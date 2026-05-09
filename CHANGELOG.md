@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CHANGELOG.md, RELEASE_NOTES.md, README.md updated for v0.7.0
 - GitHub Actions CI badge added to README
 - Internal doc links validated — no broken references
-- Test count updated to ~1940
+- Test count updated to ~2206
 
 ### Tests Added (Phase 15)
 - `tests/test_e2e_build.py` — 60 E2E Blender build tests
@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_benchmark.py` — benchmark regression tests
 - `tests/test_blender_compat.py` — Blender compatibility tests
 
-**Total: ~1940 tests passing, 0 failures**
+**Total: ~2206 tests passing, 0 failures**
 
 ### Changed
 - `src/hamr/__init__.py` — Version bumped to 0.7.0

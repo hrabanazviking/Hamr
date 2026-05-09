@@ -1,7 +1,5 @@
 ---
-
 ![https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg](https://raw.githubusercontent.com/hrabanazviking/Hamr/refs/heads/Development/f5796b46-87be-49ef-927d-7e7ac3320153.jpg)
-
 ---
 
 <div align="center">
@@ -14,11 +12,10 @@
 
 Linux-native · Headless-first · Agent-orchestrated · VRM 1.0
 
+[![CI](https://github.com/hrabanazviking/Hamr/actions/workflows/ci.yml/badge.svg?branch=Development)](https://github.com/hrabanazviking/Hamr/actions)
 [![Version](https://img.shields.io/badge/version-0.7.0-blue)]()
-[![Tests](https://img.shields.io/badge/tests-1940%20passing-brightgreen)]()
-[![CI](https://github.com/hrabanazviking/Hamr/actions/workflows/ci.yml/badge.svg?branch=Development)]()
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)]()
-[![Blender](https://img.shields.io/badge/blender-3.4%2B-orange)]()
+[![Tests](https://img.shields.io/badge/tests-2206%20passing-brightgreen)]()
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)]()
 
 </div>
@@ -40,43 +37,19 @@ No GUI. No Windows dependency. No closed-source lock-in.
 
 ---
 
-## 🆕 What's New in v0.7.0
+## ✨ Key Features
 
-- **14-Stage Build Pipeline** — Explicit numbered stages with timing, skip-stages, and dry-run
-- **6 Character Presets** — Built-in presets (anime girl, warrior, chibi, and more) with deep merge
-- **Procedural Hair & Clothing** — 5 hair styles, 6 clothing patterns, weight paint transfer
-- **Face Expressions** — Auto-discovery of shape keys, VRM 1.0 expression presets (6+)
-- **Materials Forge** — Eevee-optimized anime shaders (skin, eye, hair, clothing)
-- **Texture Forge** — Procedural skin detail, iris, hair gradients, fabric normals (Pillow-based)
-- **GPU-Adaptive Quality** — Pi 5 / Desktop / Cloud profiles with memory budget enforcement
-- **VRM 1.0 Validator** — Binary glTF parsing, bone coverage check, spring bone validation
-- **Animation Clips** — Idle breathe, weight shift, look around, walk cycle
-- **Accessibility-First CLI** — `--no-color`, `--quiet`, `--json` flags; actionable error suggestions
-- **Auto-Generated Docs** — CLI reference, architecture diagram, preset guide from live code
-- **E2E Blender Build Testing** — 60 headless end-to-end builds proving every preset
-- **GitHub Actions CI/CD** — lint → test → coverage → E2E on every push/PR
-- **Performance Regression Baselines** — 62 thresholds guarding against degradation
-- **Preset Validation Fixed** — All 5 remaining failures resolved; 0 failures total
-- **Release Artifact Pipeline** — Versioned wheels + checksums on tag push
-- **API Reference Generator** — Auto-generated markdown docs from live code
-- **~1,940 Tests** — Every forge tested, every path validated, 0 failures
-
-See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full changelog.
+- **🎨 MToon Anime Shaders** — Two-tone cel-shading, rim lighting, outline rendering, emission — full VRM MToon spec in pure Python
+- **🌿 Spring Bone Physics** — Hair sway, skirt drape, accessory bob — physics presets, parameter blending, and energy estimation
+- **🤸 Pose Library** — Pre-defined T-pose, A-pose, hand poses, and facial presets with blending and VRM export
+- **📦 VRM 1.0 Export** — Spring bones, expressions, look-at, first-person annotations — full VRM 1.0 compliance out of the box
+- **🔧 YAML-First Spec** — Define characters in simple YAML files, not GUI clicks
+- **🖥️ Headless Blender** — Runs entirely in `blender --background`, no GUI required
+- **🍓 Pi 5 Ready** — GPU-adaptive quality profiles for Raspberry Pi 5, desktop, and cloud
+- **♿ Accessibility-First** — `--no-color`, `--json`, `--quiet` on every command
+- **✅ 2,206 Tests** — Every forge tested, every path validated, 0 failures
 
 ---
-
-## ✨ Features
-
-- **YAML-First Spec** — Define characters in simple YAML files, not GUI clicks
-- **8 Body Presets** — Athletic-slender, curvy, petite, tall, muscular, and more
-- **Parametric Face** — Eyes, nose, mouth, cheeks, ears, chin — all slider-driven
-- **Skin & Hair Textures** — HSV-driven procedural textures, no image assets needed
-- **MB-Lab + TurboSquid Bone Maps** — Explicit bone mappings (never auto-map)
-- **VRM 1.0 Export** — Spring bones, expressions, look-at, first-person annotations
-- **Blender Headless** — Runs entirely in `blender --background`, no GUI required
-- **Agent-Orchestrated** — Designed for AI-driven creation pipelines
-- **Accessibility-First** — `--no-color`, `--json`, `--quiet` on every command
-- **~1,940 Tests** — Every forge tested, every path validated
 
 ## 🗡️ Quick Start
 
@@ -84,20 +57,14 @@ See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full changelog.
 # Install
 pip install hamr
 
-# Create a character from a spec
-hamr build my_character.yaml --out output/
-
-# Or build from a preset
+# Build a character from a preset
 hamr build --preset anime_girl_default
+
+# Build from a spec file
+hamr build my_character.yaml --out output/
 
 # Validate a spec without building
 hamr validate my_character.yaml
-
-# Check your Blender environment
-hamr check-env
-
-# List available presets
-hamr list-presets
 
 # Inspect a VRM file
 hamr inspect output/avatar.vrm
@@ -105,12 +72,23 @@ hamr inspect output/avatar.vrm
 # Verify a VRM rig
 hamr verify-rig output/avatar.vrm
 
-# Run accessibility audit
-hamr docs audit
+# Check your build environment
+hamr check-env
+
+# List available presets
+hamr list-presets
+
+# Print version
+hamr version
 
 # Generate documentation
 hamr docs generate
+
+# Run accessibility audit
+hamr docs audit
 ```
+
+See [CLI Reference](#-cli-reference) below for all 9 commands and flags.
 
 ---
 
@@ -226,7 +204,7 @@ export:
 
 ## 🏗️ Architecture
 
-Hamr is organized as **six forges** around a central spec:
+Hamr is organized as **seven forges** around a central spec:
 
 ```
 ┌─────────────┐
@@ -237,13 +215,13 @@ Hamr is organized as **six forges** around a central spec:
 │   Builder   │ ← Validates, orchestrates, wires
 └──────┬──────┘
        │
-  ┌────┼────┬────────┬─────────┐
-  │    │    │        │         │
-┌▼─┐ ┌▼─┐ ┌▼──┐ ┌───▼───┐ ┌──▼──┐
-│Bd│ │Tx│ │Rig│ │Texture│ │Export│
-│Fo│ │Fo│ │Fo │ │ Forge │ │Forge│
-│rg│ │rg│ │rge│ │       │ │     │
-└──┘ └──┘ └───┘ └───────┘ └─────┘
+  ┌────┼────┬────────┬─────────┬───────┐
+  │    │    │        │         │       │
+┌▼─┐ ┌▼─┐ ┌▼──┐ ┌───▼───┐ ┌──▼──┐ ┌▼────┐
+│Bd│ │Tx│ │Rig│ │Texture│ │MToo│ │Expt│
+│Fo│ │Fo│ │Fo │ │ Forge │ │ Fo  │ │Forge│
+│rg│ │rg│ │rge│ │       │ │ rge │ │     │
+└──┘ └──┘ └───┘ └───────┘ └─────┘ └─────┘
        │
   ┌────▼────┐
   │ Blender  │ ← Headless subprocess
@@ -259,17 +237,32 @@ Hamr is organized as **six forges** around a central spec:
 |--------|---------|
 | `core/spec` | YAML spec parsing, validation, serialization |
 | `core/builder` | Pipeline orchestrator (validate → build → export) |
-| `core/pipeline` | Full `BuildPipeline` with error handling |
+| `core/pipeline` | Full `BuildPipeline` with 14 numbered stages |
 | `core/textures` | HSV-driven procedural texture generation |
-| `core/texture_procedural` | Skin detail, fabric normal, eye iris generators |
-| `core/perf` | Performance budgets and GPU- adaptive quality |
+| `core/texture_procedural` | Skin detail, iris, hair gradients, fabric normals |
+| `core/perf` | Performance budgets and GPU-adaptive quality |
 | `core/constants` | Body presets, skin palettes, bone names |
+| `core/gpu_profiles` | Pi 5 / Desktop / Cloud hardware detection |
+| `core/a11y` | Accessibility flags, CLI hardening, error hints |
+| `core/regression` | Performance regression baselines |
 | `hair/` | Procedural hair styles, color gradients, physics |
 | `face/` | Shape keys, expression mapping, sliders |
 | `clothing/` | Outfit layers, materials, tinting |
-| `rigs/` | Bone mapping, weight painting, spring bones |
+| `materials/mtoon` | MToon anime shader configuration, presets, VRM export |
+| `materials/anime` | Eevee-optimized anime shaders (skin, eye, hair, clothing) |
+| `rigs/spring_bones` | VRM 1.0 spring bone groups and collider setup |
+| `rigs/spring_tuning` | Spring bone parameter presets, blending, energy estimation |
+| `rigs/poses` | Pose library — T-pose, A-pose, hand poses, facial presets |
+| `rigs/stub_bones` | Missing bone creation for 25/25 humanoid mapping |
+| `rigs/weights` | Weight paint engine with smoothing and quality scoring |
+| `rigs/verify` | VRM rig compliance checker |
+| `rigs/collision` | Deterministic head and body colliders |
 | `blender_bridge/` | Headless Blender subprocess runner |
+| `blender_bridge/e2e` | End-to-end Blender build testing |
 | `export/` | VRM 1.0 export with bone maps and expressions |
+| `export/vrm_validator` | Binary glTF parsing, bone coverage, compliance |
+| `export/animation_clips` | Idle, weight shift, look-around, walk cycle clips |
+| `export/first_person` | First-person mesh annotations per render subset |
 | `docs/` | Auto-generated documentation & a11y audit |
 | `cli` | Command-line interface |
 
@@ -281,27 +274,42 @@ Hamr is organized as **six forges** around a central spec:
 
 ## 📖 CLI Reference
 
-Hamr's CLI provides these commands:
+Hamr's CLI provides 9 commands:
 
 | Command | Description |
 |---------|-------------|
 | `hamr build` | Build a character from spec or preset |
 | `hamr validate` | Validate a spec without building |
 | `hamr inspect` | Inspect VRM/GLB file compliance |
-| `hamr list-presets` | List available presets |
+| `hamr list-presets` | List available character presets |
 | `hamr verify-rig` | Verify VRM rig completeness |
-| `hamr check-env` | Check build environment |
-| `hamr version` | Print version |
+| `hamr check-env` | Check build environment (Blender, VRM addon, GPU) |
+| `hamr version` | Print Hamr version |
 | `hamr docs generate` | Generate documentation files |
 | `hamr docs audit` | Run accessibility & compliance audit |
 
 All commands support `--no-color`, `--quiet`, and `--json` flags for accessibility.
+`build` also supports `--preset`, `--spec`, `--skip-stages`, `--dry-run`, and `--budget`.
 
-See `hamr <command> --help` for detailed options. Auto-generated CLI docs are available via `hamr docs generate`.
+See `hamr <command> --help` for detailed options.
 
 ---
 
-## 🛡️ Design Lessons (from Seiðr-Smiðja)
+## 🛡️ GPU Profiles
+
+Hamr adapts build quality to your hardware. Three profiles — from anvil to sky:
+
+| Profile | Device | Max Triangles | Texture Res | Build Time | Memory | SSS | Hair Styles |
+|---------|--------|--------------|-------------|-------------|--------|-----|-------------|
+| **Pi 5** | Raspberry Pi 5 | 20K | 1024px | ≤45s | 1.5 GB | ✗ | limited |
+| **Desktop** | Discrete GPU | 80K | 2048px | ≤30s | 4 GB | ✓ | all |
+| **Cloud** | Cloud GPU | 200K | 4096px | ≤15s | 8 GB | ✓ | all |
+
+Auto-detection probes `/sys`, `lspci`, and `glxinfo`. Override with `--budget minimal|standard|full`.
+
+---
+
+## 🗡️ Design Lessons (from Seiðr-Smiðja)
 
 Hamr incorporates hard-won lessons from building Seiðr-Smiðja:
 
@@ -326,7 +334,7 @@ Hamr incorporates hard-won lessons from building Seiðr-Smiðja:
 ## 🔧 Installation
 
 ```bash
-# Install from PyPI (when published)
+# Install from PyPI
 pip install hamr
 
 # Or install from source
@@ -337,7 +345,7 @@ pip install -e ".[dev]"
 
 ### Requirements
 
-- **Python 3.11+**
+- **Python 3.10+**
 - **Blender 3.4+** (for full build pipeline — headless mode)
 - **PyYAML**, **Pillow**, **numpy** (auto-installed with pip)
 
@@ -354,22 +362,42 @@ cd Hamr
 pip install -e ".[dev]"
 
 # Run tests
-pytest tests/ -v
+python3 -m pytest tests/ -q --tb=short
 
-# Run with coverage
-pytest tests/ --cov=hamr --cov-report=term-missing
+# Without Blender-dependent tests
+python3 -m pytest tests/ -q -m "not blender and not e2e"
 
-# Run a11y audit
-hamr docs audit
+# With coverage
+python3 -m pytest tests/ --cov=hamr --cov-report=term-missing
 
-# Generate documentation
-hamr docs generate --output docs/
+# Performance regression
+python3 -m pytest tests/ -m perf
 
 # Lint
-ruff check src/hamr/
+ruff check src/ tests/
+
+# Type check
+mypy src/
 ```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines, code style, and PR checklist.
+
+---
+
+## 🆕 What's New in v0.7.0
+
+- **MToon Anime Shaders** — Full VRM MToon cel-shading spec: two-tone lighting, rim, outline, emission, transparency
+- **Spring Bone Tuning** — Physics parameter presets, blending, validation, and energy estimation
+- **Pose Library** — Pre-defined T-pose, A-pose, hand and facial poses with blending and VRM export
+- **14-Stage Build Pipeline** — Explicit numbered stages with timing, skip-stages, and dry-run
+- **6 Character Presets** — Built-in presets with deep merge
+- **Procedural Hair & Clothing** — 5 hair styles, 6 clothing patterns, weight paint transfer
+- **Face Expressions** — Auto-discovery of shape keys, VRM 1.0 expression presets (6+)
+- **VRM 1.0 Validator** — Binary glTF parsing, bone coverage, spring bone validation
+- **GPU-Adaptive Quality** — Pi 5 / Desktop / Cloud profiles with memory budget enforcement
+- **2,206 Tests, 0 Failures** — Every forge tested, every path validated
+
+See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full changelog and [MIGRATION.md](./MIGRATION.md) for upgrade instructions.
 
 ---
 
