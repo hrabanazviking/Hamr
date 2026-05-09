@@ -1,3 +1,5 @@
+## ✅ COMPLETE — Phase 15: Vápnatak
+
 # ⚔️ Phase 15: Vápnatak — The Taking Up of Arms
 
 > *Ok í þeiri þreytiðti, er at Vápnataka, æði at eitt hvert,*  

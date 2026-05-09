@@ -307,7 +307,7 @@ class TestCLIIntegration:
             cwd="/home/pi/Hamr",
         )
         # May return 0 or may have import issues
-        assert "0.7.0rc1" in result.stdout or result.returncode != 0
+        assert "0.7.0" in result.stdout or result.returncode != 0
 
     def test_hamr_list_presets_command(self):
         """hamr list-presets should show presets."""
