@@ -65,6 +65,21 @@ from hamr.rigs.spring_tuning import (
     spring_group_to_vrm,
     estimate_spring_energy,
 )
+from hamr.rigs.poses import (
+    BonePose,
+    PosePreset,
+    POSE_PRESETS,
+    VALID_BONE_NAMES,
+    VALID_BLEND_SHAPES,
+    validate_pose,
+    create_pose,
+    blend_poses,
+    get_poses_by_category,
+    get_pose,
+    list_pose_names,
+    list_categories,
+    pose_to_vrm,
+)
 from hamr.export.vrm import MB_LAB_BONE_MAP, VRM_REQUIRED_BONES
 from hamr.core.constants import VRM_25_BONE_NAMES
 
@@ -126,4 +141,18 @@ __all__ = [
     "spring_params_to_vrm",
     "spring_group_to_vrm",
     "estimate_spring_energy",
+    # Pose library
+    "BonePose",
+    "PosePreset",
+    "POSE_PRESETS",
+    "VALID_BONE_NAMES",
+    "VALID_BLEND_SHAPES",
+    "validate_pose",
+    "create_pose",
+    "blend_poses",
+    "get_poses_by_category",
+    "get_pose",
+    "list_pose_names",
+    "list_categories",
+    "pose_to_vrm",
 ]
