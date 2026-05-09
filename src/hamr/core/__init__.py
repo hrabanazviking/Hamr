@@ -71,6 +71,19 @@ from hamr.core.regression import (
     load_saved_baselines,
     compare_baselines,
 )
+from hamr.core.release import (
+    ArtifactInfo,
+    ReleaseBundle,
+    compute_file_hash,
+    compute_file_hashes,
+    create_artifact_info,
+    find_artifacts,
+    generate_checksums,
+    write_checksums,
+    create_release_bundle,
+    validate_release_bundle,
+    generate_release_manifest,
+)
 
 __all__ = [
     "Spec",
@@ -134,4 +147,15 @@ __all__ = [
     "save_baselines",
     "load_saved_baselines",
     "compare_baselines",
+    "ArtifactInfo",
+    "ReleaseBundle",
+    "compute_file_hash",
+    "compute_file_hashes",
+    "create_artifact_info",
+    "find_artifacts",
+    "generate_checksums",
+    "write_checksums",
+    "create_release_bundle",
+    "validate_release_bundle",
+    "generate_release_manifest",
 ]
