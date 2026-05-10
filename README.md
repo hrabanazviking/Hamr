@@ -47,7 +47,7 @@ No GUI. No Windows dependency. No closed-source lock-in.
 - **🖥️ Headless Blender** — Runs entirely in `blender --background`, no GUI required
 - **🍓 Pi 5 Ready** — GPU-adaptive quality profiles for Raspberry Pi 5, desktop, and cloud
 - **♿ Accessibility-First** — `--no-color`, `--json`, `--quiet` on every command
-- **✅ 2,206 Tests** — Every forge tested, every path validated, 0 failures
+- **✅ 2,233 Tests** (2,206 pass, 27 skip, 0 fail) — Every forge tested, every path validated
 
 ---
 
@@ -395,7 +395,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines, code style
 - **Face Expressions** — Auto-discovery of shape keys, VRM 1.0 expression presets (6+)
 - **VRM 1.0 Validator** — Binary glTF parsing, bone coverage, spring bone validation
 - **GPU-Adaptive Quality** — Pi 5 / Desktop / Cloud profiles with memory budget enforcement
-- **2,206 Tests, 0 Failures** — Every forge tested, every path validated
+- **2,233 Tests (2,206 pass, 27 skip, 0 fail)** — Every forge tested, every path validated
 
 See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full changelog and [MIGRATION.md](./MIGRATION.md) for upgrade instructions.
 
