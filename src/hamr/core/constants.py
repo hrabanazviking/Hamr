@@ -230,6 +230,45 @@ BODY_PRESETS = {
     },
 }
 
+# ── MB-Lab 1.7.8 Canonical Bone Map ────────────────────────────
+# FP-2: Single source of truth for MB-Lab → VRM bone mapping.
+# MB-Lab 1.7.8 uses underscore suffix convention: thigh_L, calf_L, upperarm_L
+# Spine uses number suffix: spine01, spine02, spine03
+# Eyes and jaw are stub bones (AD-11.1) — MB-Lab doesn't generate these natively.
+MB_LAB_BONE_MAP: dict[str, str] = {
+    # Core spine — MB-Lab 1.7.8: spine01/spine02/spine03
+    "hips": "pelvis",
+    "spine": "spine01",
+    "chest": "spine02",
+    "upperChest": "spine03",
+    "neck": "neck",
+    "head": "head",
+    # Left arm — underscore suffix convention: upperarm_L
+    "leftShoulder": "clavicle_L",
+    "leftUpperArm": "upperarm_L",
+    "leftLowerArm": "lowerarm_L",
+    "leftHand": "hand_L",
+    # Right arm
+    "rightShoulder": "clavicle_R",
+    "rightUpperArm": "upperarm_R",
+    "rightLowerArm": "lowerarm_R",
+    "rightHand": "hand_R",
+    # Left leg — underscore suffix convention: calf_L
+    "leftUpperLeg": "thigh_L",
+    "leftLowerLeg": "calf_L",
+    "leftFoot": "foot_L",
+    "leftToes": "toes_L",
+    # Right leg
+    "rightUpperLeg": "thigh_R",
+    "rightLowerLeg": "calf_R",
+    "rightFoot": "foot_R",
+    "rightToes": "toes_R",
+    # Head — stub bones (AD-11.1): created by hamr.rigs.stub_bones
+    "jaw": "jaw",
+    "leftEye": "leftEye",
+    "rightEye": "rightEye",
+}
+
 # ── VRM Export Constants ──────────────────────────────────────
 VRM_SPEC_VERSION = "1.0"
 VRM_META_DEFAULTS = {

@@ -31,48 +31,8 @@ except ImportError:
 # ──────────────────────────────────────────────────────────────
 # VRM 1.0 Humanoid Bone Mapping
 # ──────────────────────────────────────────────────────────────
-# This is the CANONICAL mapping for MB-Lab base meshes.
-# MB-Lab uses Blender bone naming conventions.
-
-MB_LAB_BONE_MAP: dict[str, str] = {
-    # Core spine
-    "hips": "pelvis",
-    "spine": "spine",
-    "chest": "spine_01",
-    "upperChest": "spine_02",
-    "neck": "neck",
-    "head": "head",
-
-    # Left arm
-    "leftShoulder": "clavicle_L",
-    "leftUpperArm": "upper_arm_L",
-    "leftLowerArm": "forearm_L",
-    "leftHand": "hand_L",
-
-    # Right arm
-    "rightShoulder": "clavicle_R",
-    "rightUpperArm": "upper_arm_R",
-    "rightLowerArm": "forearm_R",
-    "rightHand": "hand_R",
-
-    # Left leg
-    "leftUpperLeg": "thigh_L",
-    "leftLowerLeg": "shin_L",
-    "leftFoot": "foot_L",
-    "leftToes": "toe_L",
-
-    # Right leg
-    "rightUpperLeg": "thigh_R",
-    "rightLowerLeg": "shin_R",
-    "rightFoot": "foot_R",
-    "rightToes": "toe_R",
-
-    # Eyes and jaw — stub bones from hamr.rigs.stub_bones (AD-11.1)
-    # MB-Lab doesn't generate these; stub_bones.create_missing_bones() adds them
-    "leftEye": "leftEye",
-    "rightEye": "rightEye",
-    "jaw": "jaw",
-}
+# FP-2: Canonical mapping consolidated in hamr.core.constants
+from hamr.core.constants import MB_LAB_BONE_MAP
 
 # Required VRM 1.0 humanoid bones (25 required for VRM 1.0 spec)
 VRM_REQUIRED_BONES = [

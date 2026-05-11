@@ -46,31 +46,8 @@ logger.setLevel(logging.DEBUG)
 # Bone Maps — MB-Lab & TurboSquid
 # ──────────────────────────────────────────────────────────────────────────────
 
-MB_LAB_BONE_MAP: dict[str, str] = {
-    "hips": "pelvis",
-    "spine": "spine01",
-    "chest": "spine02",
-    "upperChest": "spine03",
-    "neck": "neck",
-    "head": "head",
-    "leftUpperLeg": "thigh_L",
-    "leftLowerLeg": "calf_L",
-    "leftFoot": "foot_L",
-    "leftToes": "toes_L",
-    "rightUpperLeg": "thigh_R",
-    "rightLowerLeg": "calf_R",
-    "rightFoot": "foot_R",
-    "rightToes": "toes_R",
-    "leftShoulder": "clavicle_L",
-    "leftUpperArm": "upperarm_L",
-    "leftLowerArm": "lowerarm_L",
-    "leftHand": "hand_L",
-    "rightShoulder": "clavicle_R",
-    "rightUpperArm": "upperarm_R",
-    "rightLowerArm": "lowerarm_R",
-    "rightHand": "hand_R",
-    "jaw": "jaw",
-}
+# FP-2: Canonical MB-Lab bone map consolidated in hamr.core.constants
+from hamr.core.constants import MB_LAB_BONE_MAP
 
 # MB-Lab expression presets → shape key bindings (using actual MB-Lab expression names)
 # After finalize_character, shape keys use the "Expressions_" prefix
@@ -513,10 +490,22 @@ def _generate_mblab_base(bpy) -> None:
     except Exception:
         pass  # May already be enabled
 
+    # FP-3: CANCELLED result from MB-Lab often indicates a silent failure.
+    # Log a warning, retry once, and raise BuildError if still CANCELLED.
     # Step 1: Initialize character (creates base mesh f_af01 + armature)
     try:
         result = bpy.ops.mbast.init_character()
-        if "FINISHED" in result or "CANCELLED" in result:
+        if "CANCELLED" in result:
+            logger.warning(f"MB-Lab init_character returned CANCELLED — retrying once")
+            result = bpy.ops.mbast.init_character()
+            if "CANCELLED" in result:
+                from hamr.core.errors import BuildError
+                raise BuildError(
+                    "MB-Lab init_character returned CANCELLED after retry",
+                    stage="mblab_init",
+                    details=f"Result: {result}",
+                )
+        if "FINISHED" in result:
             mesh_objects = [o for o in bpy.data.objects if o.type == "MESH"]
             if mesh_objects:
                 logger.info(f"MB-Lab character initialized: {mesh_objects[0].name}")
@@ -858,7 +847,7 @@ def _apply_vrm_humanoid(bpy, spec: dict, stub_result=None) -> None:
         logger.warning("No armature found for VRM mapping")
         return
 
-    vrm_ext = armature.data.vrm_addon_extension
+    vrm_ext = armature.vrm_addon_extension
     human_bones = vrm_ext.vrm1.humanoid.human_bones
 
     # D-008: NEVER auto-map bones
@@ -909,8 +898,8 @@ def _apply_vrm_humanoid(bpy, spec: dict, stub_result=None) -> None:
 def _apply_vrm_metadata(bpy, spec: dict) -> None:
     """Set VRM 1.0 metadata."""
     for obj in bpy.data.objects:
-        if obj.type == "ARMATURE" and hasattr(obj.data, "vrm_addon_extension"):
-            vrm_ext = obj.data.vrm_addon_extension
+        if obj.type == "ARMATURE" and hasattr(obj, "vrm_addon_extension"):
+            vrm_ext = obj.vrm_addon_extension
             meta = vrm_ext.vrm1.meta
 
             meta.name = spec.get("name", "Hamr Character")
@@ -933,8 +922,8 @@ def _apply_vrm_metadata(bpy, spec: dict) -> None:
 def _apply_vrm_expressions(bpy, spec: dict) -> None:
     """Configure VRM 1.0 expressions. D-011, D-013."""
     for obj in bpy.data.objects:
-        if obj.type == "ARMATURE" and hasattr(obj.data, "vrm_addon_extension"):
-            vrm_ext = obj.data.vrm_addon_extension
+        if obj.type == "ARMATURE" and hasattr(obj, "vrm_addon_extension"):
+            vrm_ext = obj.vrm_addon_extension
 
             # Discover shape keys
             shape_key_index = {}  # shape_key_name → mesh_name
@@ -985,8 +974,8 @@ def _apply_vrm_expressions(bpy, spec: dict) -> None:
 def _apply_vrm_look_at(bpy, spec: dict) -> None:
     """Configure VRM 1.0 lookAt. MB-Lab has no eye bones → use expressionOnly."""
     for obj in bpy.data.objects:
-        if obj.type == "ARMATURE" and hasattr(obj.data, "vrm_addon_extension"):
-            vrm_ext = obj.data.vrm_addon_extension
+        if obj.type == "ARMATURE" and hasattr(obj, "vrm_addon_extension"):
+            vrm_ext = obj.vrm_addon_extension
             look_at = vrm_ext.vrm1.look_at
 
             # Check for eye bones — MB-Lab rigs lack them, so use expressionOnly

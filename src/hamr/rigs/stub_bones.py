@@ -99,38 +99,11 @@ def detect_missing_bones(existing_bone_names: set[str]) -> set[str]:
 def _vrm_to_mblab(vrm_name: str) -> str:
     """Map a VRM bone name to its MB-Lab Blender equivalent.
 
-    This is the same mapping as MB_LAB_BONE_MAP in vrm.py,
-    duplicated here for pure-Python use (no bpy import needed).
+    FP-2: Uses canonical MB_LAB_BONE_MAP from hamr.core.constants.
+    Pure-Python — falls back to identity mapping for unknown bones.
     """
-    mblab_map: dict[str, str] = {
-        "hips": "pelvis",
-        "spine": "spine",
-        "chest": "spine_01",
-        "upperChest": "spine_02",
-        "neck": "neck",
-        "head": "head",
-        "leftShoulder": "clavicle_L",
-        "rightShoulder": "clavicle_R",
-        "leftUpperArm": "upper_arm_L",
-        "rightUpperArm": "upper_arm_R",
-        "leftLowerArm": "forearm_L",
-        "rightLowerArm": "forearm_R",
-        "leftHand": "hand_L",
-        "rightHand": "hand_R",
-        "leftUpperLeg": "thigh_L",
-        "rightUpperLeg": "thigh_R",
-        "leftLowerLeg": "shin_L",
-        "rightLowerLeg": "shin_R",
-        "leftFoot": "foot_L",
-        "rightFoot": "foot_R",
-        "leftToes": "toe_L",
-        "rightToes": "toe_R",
-        # These DO NOT exist in MB-Lab, but we list them for completeness
-        "leftEye": "eye_L",
-        "rightEye": "eye_R",
-        "jaw": "jaw",
-    }
-    return mblab_map.get(vrm_name, vrm_name)
+    from hamr.core.constants import MB_LAB_BONE_MAP
+    return MB_LAB_BONE_MAP.get(vrm_name, vrm_name)
 
 
 def compute_stub_position(
