@@ -210,6 +210,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             base_mesh=args.base,
             validate=not args.no_validate,
             max_tex=args.max_tex,
+            force_over_budget=args.force_over_budget,
         )
     except SpecValidationError as e:
         if opts.json_output:

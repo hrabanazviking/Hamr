@@ -196,7 +196,7 @@ TURBOSQUID_EXPRESSION_MAP: dict[str, list[dict]] = {
 
 def parse_args(argv: list[str]) -> dict:
     """Parse command-line arguments."""
-    args = {"spec": None, "base": None, "output": None, "max_tex": 0}
+    args = {"spec": None, "base": None, "output": None, "max_tex": 0, "force_over_budget": False}
     i = 0
     while i < len(argv):
         if argv[i] == "--spec" and i + 1 < len(argv):
@@ -207,6 +207,8 @@ def parse_args(argv: list[str]) -> dict:
             args["output"] = argv[i + 1]; i += 2
         elif argv[i] == "--max-tex" and i + 1 < len(argv):
             args["max_tex"] = int(argv[i + 1]); i += 2
+        elif argv[i] == "--force-over-budget":
+            args["force_over_budget"] = True; i += 1
         else:
             i += 1
     return args

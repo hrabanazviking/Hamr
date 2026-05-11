@@ -173,7 +173,8 @@ def build(
         script_args=[
             "--spec", str(spec_temp),
             "--output", str(output_file),
-        ] + (["--base", str(base_mesh)] if base_mesh else []),
+        ] + (["--base", str(base_mesh)] if base_mesh else [])
+          + (["--force-over-budget"] if force_over_budget else []),
         env={"HAMR_SPEC_PATH": str(spec_temp)},
     )
 

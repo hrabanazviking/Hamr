@@ -89,6 +89,7 @@ class BuildPipeline:
         base_mesh: str | Path | None = None,
         validate: bool = True,
         max_tex: int = 0,
+        force_over_budget: bool = False,
     ) -> PipelineResult:
         """
         Build a character from a spec file through the full pipeline.
@@ -193,6 +194,8 @@ class BuildPipeline:
                 ["--base", str(base_mesh)] if base_mesh else []
             ) + (
                 ["--max-tex", str(max_tex)] if max_tex > 0 else []
+            ) + (
+                ["--force-over-budget"] if force_over_budget else []
             ),
             blender_args=self.blender_args or None,
             timeout=self.blender_timeout,
