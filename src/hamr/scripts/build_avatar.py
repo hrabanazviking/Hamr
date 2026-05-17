@@ -850,7 +850,15 @@ def _apply_vrm_humanoid(bpy, spec: dict, stub_result=None) -> None:
         return
 
     vrm_ext = armature.vrm_addon_extension
-    human_bones = vrm_ext.vrm1.humanoid.human_bones
+    # Compatibility fix for VRM addon API changes (vrm1 vs direct attributes)
+    if hasattr(vrm_ext, 'vrm1'):
+        humanoid = vrm_ext.vrm1.humanoid
+        human_bones = humanoid.human_bones
+    elif hasattr(vrm_ext, 'humanoid'):
+        human_bones = vrm_ext.humanoid.human_bones
+    else:
+        logger.warning("VRM addon extension not available or unknown structure. Available attrs: {}".format(dir(vrm_ext)))
+        return
 
     # D-008: NEVER auto-map bones
     human_bones.initial_automatic_bone_assignment = False
@@ -902,7 +910,14 @@ def _apply_vrm_metadata(bpy, spec: dict) -> None:
     for obj in bpy.data.objects:
         if obj.type == "ARMATURE" and hasattr(obj, "vrm_addon_extension"):
             vrm_ext = obj.vrm_addon_extension
-            meta = vrm_ext.vrm1.meta
+            # Compatibility for VRM addon versions
+            if hasattr(vrm_ext, 'vrm1'):
+                meta = vrm_ext.vrm1.meta
+            elif hasattr(vrm_ext, 'meta'):
+                meta = vrm_ext.meta
+            else:
+                logger.warning("Could not locate VRM meta property group")
+                break
 
             meta.name = spec.get("name", "Hamr Character")
             meta.title = spec.get("name", "Hamr Character")
@@ -946,8 +961,17 @@ def _apply_vrm_expressions(bpy, spec: dict) -> None:
             if spec_expr:
                 expr_map = {**expr_map, **spec_expr}
 
-            preset = vrm_ext.vrm1.expressions.preset
-            vrm_ext.vrm1.expressions.initial_automatic_expression_assignment = False
+            # Compatibility for VRM addon versions
+            if hasattr(vrm_ext, 'vrm1'):
+                vrm1 = vrm_ext.vrm1
+            elif hasattr(vrm_ext, 'expressions'):
+                vrm1 = vrm_ext
+            else:
+                logger.warning("Could not locate VRM expressions property group")
+                break
+
+            preset = vrm1.expressions.preset
+            vrm1.expressions.initial_automatic_expression_assignment = False
 
             mapped = 0
             for preset_name, bindings in expr_map.items():

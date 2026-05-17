@@ -1,0 +1,63 @@
+name: Default Schoolgirl
+version: '1.0'
+body:
+  height_cm: 158.0
+  build: average
+  skin:
+    base_hex: '#F5D6C3'
+    undertone: warm
+    freckles: false
+    tan_level: 0.4
+  proportions:
+    shoulder_width: 0.35
+    bust: 0.55
+    waist: 0.3
+    hip_width: 0.6
+    leg_length: 0.55
+face:
+  jaw: V-shape
+  cheekbones: high
+  eyes:
+    iris_hex: '#8B5E3C'
+    shape: round
+    size: 1.3
+  nose_size: small
+  nose_bridge: narrow
+  lip_fullness: 0.6
+  default_expression: soft-half-smile
+hair:
+  style: straight
+  length: long
+  volume: 0.7
+  curl_tightness: 0.0
+  color:
+    roots: '#5C3A1E'
+    mid: '#7A4E28'
+    tips: '#A06830'
+  shell_layers: 4
+clothing:
+- name: school_uniform
+  type: full-outfit
+  primary_hex: '#1A1A3E'
+  accent_hex: '#FFFFFF'
+  trim_hex: '#C0392B'
+expressions:
+  defaults:
+    blink: subtle
+    blush: always-on
+  custom: []
+physics:
+  hair:
+    stiffness: 0.3
+    gravity: 0.25
+    drag: 0.35
+  breast:
+    stiffness: 0.25
+    drag: 0.6
+export:
+  format: vrm1
+  title: Hamr Character
+  author: Hamr Forge
+  version: '1.0'
+  license: CC-BY-4.0
+  contact_url: https://github.com/hrabanazviking/Hamr
