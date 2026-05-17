@@ -390,8 +390,10 @@ def generate_build_script(config: E2EBuildConfig) -> Path:
     try:
         from hamr.core.presets import get_preset
         preset_data = get_preset(config.spec_name)
-        spec_json = json.dumps(preset_data, indent=2, default=str)
-    except (ImportError, KeyError):
+        # Use .spec dict if available (CharacterPreset), else fall back
+        spec_dict = preset_data.spec if hasattr(preset_data, "spec") else preset_data
+        spec_json = json.dumps(spec_dict, indent=2, default=str)
+    except (ImportError, KeyError, AttributeError):
         spec_json = "{}  # Custom spec — populate manually"
 
     # Apply overrides to the JSON spec string
