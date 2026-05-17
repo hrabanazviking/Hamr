@@ -910,13 +910,10 @@ def _apply_vrm_metadata(bpy, spec: dict) -> None:
     for obj in bpy.data.objects:
         if obj.type == "ARMATURE" and hasattr(obj, "vrm_addon_extension"):
             vrm_ext = obj.vrm_addon_extension
-            # Compatibility for VRM addon versions
-            if hasattr(vrm_ext, 'vrm1'):
+            if hasattr(vrm_ext, "vrm1"):
                 meta = vrm_ext.vrm1.meta
-            elif hasattr(vrm_ext, 'meta'):
-                meta = vrm_ext.meta
             else:
-                logger.warning("Could not locate VRM meta property group")
+                logger.warning("VRM addon vrm1 not available for metadata")
                 break
 
             meta.name = spec.get("name", "Hamr Character")
