@@ -14,7 +14,7 @@ Linux-native · Headless-first · Agent-orchestrated · VRM 1.0
 
 [![CI](https://github.com/hrabanazviking/Hamr/actions/workflows/ci.yml/badge.svg?branch=Development)](https://github.com/hrabanazviking/Hamr/actions)
 [![Version](https://img.shields.io/badge/version-0.8.0-blue)]()
-[![Tests](https://img.shields.io/badge/tests-2206%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-2065%20passing-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)]()
 
